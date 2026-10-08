@@ -28,6 +28,12 @@ test("finalized successful transaction to the expected contract passes", async (
   assert.equal(result.execution_status, "0x1");
 });
 
+test("receipt accepts the structured GenLayer lifecycle shape without confusing status and execution", async () => {
+  const result = await verifyReceipt(request, mockedRpc({ lifecycle: { status: "Finalized", statusCode: 7 }, status: "0x01" }));
+  assert.equal(result.result, "PASS");
+  assert.equal(result.lifecycle, "FINALIZED");
+});
+
 test("wrong recipient and reverted execution cannot pass", async () => {
   assert.equal((await verifyReceipt(request, mockedRpc({ to: "0x" + "d".repeat(40) }))).result, "FAIL");
   assert.equal((await verifyReceipt(request, mockedRpc({ status: "0x0" }))).result, "FAIL");

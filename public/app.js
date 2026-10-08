@@ -203,7 +203,7 @@ $("#run-online").addEventListener("click", async () => {
     const reportUrl = safeEvidenceUrl(payload.report_url);
     if (!reportUrl) throw new Error("Published report URL is invalid");
     if (!/^[0-9a-f]{64}$/.test(payload.report_sha256 ?? "")) throw new Error("Published report hash is invalid");
-    latestPublishedRun = { reportUrl, reportHash: payload.report_sha256 };
+    latestPublishedRun = { reportUrl, reportHash: payload.report_sha256, overall: report.overall };
     $("#online-report-link").href = reportUrl;
     const screenshotUrl = safeEvidenceUrl(report.screenshot);
     $("#online-screenshot-link").hidden = !screenshotUrl;
@@ -235,7 +235,7 @@ $("#review-online").addEventListener("click", async () => {
         text(output, "Transaction sent. Waiting for finality and stored review…");
       }
     });
-    text(output, `GenLayer verdict: ${result.review.verdict}. ${result.review.http_rechecked} public responses re-checked; browser clicks remain runner-only evidence. Review ID: ${reviewId}`);
+    text(output, `Claim-scope verdict: ${result.review.verdict}; Roadtest checks: ${latestPublishedRun.overall}. ${result.review.http_rechecked} public responses re-checked; browser clicks remain runner-only evidence. Review ID: ${reviewId}`);
   } catch (error) { text(output, error.message ?? "On-chain review did not complete."); }
   finally { button.disabled = false; }
 });
