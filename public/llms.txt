@@ -1,0 +1,8 @@
+# Reviewer Roadtest
+
+Reviewer Roadtest publishes narrowly scoped, repeatable first-time-user and public-evidence reports.
+Read the current report: /reports/deliveryos.json
+Read the API schema: /openapi.json
+Source and CI runner: https://github.com/Leokings/reviewer-roadtest
+
+The public JSON needs no API key. Interpret overall PASS only for the explicit claims and check_ids in that report. Read not_tested and evidence_model before relying on it. A browser screenshot is runner evidence, not independently verified on-chain proof. The current DeliveryOS run is read-only and checks prior Studionet transactions; it does not perform a new signed transaction.

@@ -1,0 +1,72 @@
+name: Roadtest and publish evidence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "configs/**"
+      - "lib/**"
+      - "scripts/**"
+      - "tests/**"
+      - "public/**"
+      - "package*.json"
+      - ".github/workflows/roadtest.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  roadtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - name: Test DeliveryOS and write the report
+        id: live
+        continue-on-error: true
+        run: npm run roadtest
+      - name: Check the report website
+        run: |
+          npx serve public -l 4173 > /tmp/roadtest-serve.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:4173/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node tests/site.mjs
+      - name: Commit the dated report, including failures
+        if: always() && github.ref == 'refs/heads/main'
+        run: |
+          if [ -f public/reports/deliveryos.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A -- public/reports/deliveryos.json public/evidence
+            if ! git diff --cached --quiet; then
+              git commit -m "ci: publish DeliveryOS Roadtest evidence"
+              git push
+            fi
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: roadtest-evidence
+          path: |
+            public/reports/deliveryos.json
+            public/evidence/deliveryos-first-visit.png
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Mark a failed live run as failed CI
+        if: steps.live.outcome == 'failure'
+        run: exit 1

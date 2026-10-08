@@ -1,0 +1,22 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Reviewer Roadtest Public Reports",
+    "version": "0.1.0",
+    "description": "Read-only, static report endpoint. No API key or wallet is needed. PASS applies only to the included scoped claims."
+  },
+  "servers": [{ "url": "https://reviewer-roadtest.vercel.app" }],
+  "paths": {
+    "/reports/deliveryos.json": {
+      "get": {
+        "summary": "Get the latest published DeliveryOS roadtest",
+        "responses": {
+          "200": {
+            "description": "Roadtest report with claims, checks, evidence boundaries, and untested paths",
+            "content": { "application/json": { "schema": { "type": "object", "required": ["protocol", "report_id", "project", "checks", "claims", "overall", "not_tested"] } } }
+          }
+        }
+      }
+    }
+  }
+}
