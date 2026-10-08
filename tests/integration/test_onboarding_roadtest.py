@@ -36,14 +36,14 @@ def test_real_studionet_consensus_and_state():
     assert tx_execution_succeeded(deploy_receipt)
     contract = factory.build_contract(extract_contract_address(deploy_receipt))
     receipt = _finalized_receipt(contract.assess(
-        args=["deliveryos_v4_first_visit", "https://deliveryos-tau-wheat.vercel.app/"]
+        args=["roadtest_first_visit", "https://reviewer-roadtest.vercel.app/"]
     ).transact(wait_transaction_status=TransactionStatus.ACCEPTED))
     assert tx_execution_succeeded(receipt)
     assessment = contract.get_assessment(
-        args=["deliveryos_v4_first_visit"]
+        args=["roadtest_first_visit"]
     ).call(transaction_hash_variant=TransactionHashVariant.LATEST_FINAL)
-    assert assessment["id"] == "deliveryos_v4_first_visit"
-    assert assessment["landing_url"] == "https://deliveryos-tau-wheat.vercel.app/"
+    assert assessment["id"] == "roadtest_first_visit"
+    assert assessment["landing_url"] == "https://reviewer-roadtest.vercel.app/"
     assert assessment["verdict"] in ("CLEAR", "PARTIAL", "UNCLEAR")
     assert assessment["scope"] == "Public first-visit explanation only"
     assert contract.get_count(args=[]).call() == 1

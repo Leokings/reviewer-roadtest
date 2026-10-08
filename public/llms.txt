@@ -1,11 +1,22 @@
 # Reviewer Roadtest
 
-Reviewer Roadtest publishes narrowly scoped, repeatable first-time-user and public-evidence reports.
-Read the current report: /reports/deliveryos.json
-Read the separate GenLayer onboarding assessment: /assessments/deliveryos.json
+Reviewer Roadtest is an independent, open-source first-visit and public-evidence tester.
+Its site shows a self-check example. It is not a security certificate.
+
+Read the dated report with no API key: /reports/roadtest.json
+Read the separate GenLayer clarity assessment: /assessments/roadtest.json
 Read the API schema: /openapi.json
+Download a plan starter: /roadtest.template.json
 Source and CI runner: https://github.com/Leokings/reviewer-roadtest
 
-The public JSON needs no API key. Interpret overall PASS only for the explicit claims and check_ids in that report. Read not_tested and evidence_model before relying on it. A browser screenshot is runner evidence, not independently verified on-chain proof. The current DeliveryOS run is read-only and checks prior Studionet transactions; it does not perform a new signed transaction.
+For a new target, make a plan on the website or edit the starter JSON, then run
+`npm run roadtest -- path/to/plan.json` from the repository. The runner supports
+exact accessible browser roles/names and same-origin JSON/text assertions.
+The hosted website does not run arbitrary targets on demand.
 
-The GenLayer assessment is a separate subjective judgement of first-visit explanatory clarity from server-rendered public landing-page text. It does not validate the CI runner's browser clicks or the API receipts. To reproduce a new assessment, use your own authorized GenLayer wallet to call assess(id, https://public-site.example/) on the deployed contract; then check finalized execution success and read get_assessment(id).
+Interpret PASS only for the named claims and check_ids in each report. Read
+not_tested and evidence_model before relying on a result. Browser screenshots
+are runner observations, not on-chain proof. The GenLayer contract separately
+assesses a public landing page's first-visit explanation; it does not verify
+the CI browser or HTTP checks. A wallet is needed only to request a new on-chain
+assessment, not to read public reports.

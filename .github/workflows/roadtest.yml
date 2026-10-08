@@ -18,7 +18,7 @@ on:
       - ".github/workflows/roadtest.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: roadtest-main
@@ -54,6 +54,8 @@ jobs:
   roadtest:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -64,14 +66,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Test DeliveryOS and write the report
+      - name: Wait for the independent site release
+        run: |
+          for i in $(seq 1 60); do
+            if node -e 'const a=await fetch("https://reviewer-roadtest.vercel.app/openapi.json",{cache:"no-store"}).then(r=>r.json());const b=await fetch("https://reviewer-roadtest.vercel.app/roadtest.template.json",{cache:"no-store"}).then(r=>r.json());if(a.info.version!=="0.2.0"||b.id!=="my-project")process.exit(1)' ; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "The updated public site did not become available" >&2
+          exit 1
+      - name: Test Roadtest and write the report
         id: live
         continue-on-error: true
         run: npm run roadtest
       - run: npm test
       - name: Check the report website
         run: |
-          npx serve public -l 4173 > /tmp/roadtest-serve.log 2>&1 &
+          node scripts/serve-public.mjs > /tmp/roadtest-serve.log 2>&1 &
           for i in $(seq 1 30); do
             if curl -fsS http://localhost:4173/ > /dev/null; then break; fi
             sleep 1
@@ -80,12 +92,12 @@ jobs:
       - name: Commit the dated report, including failures
         if: always() && github.ref == 'refs/heads/main'
         run: |
-          if [ -f public/reports/deliveryos.json ]; then
+          if [ -f public/reports/roadtest.json ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add -A -- public/reports/deliveryos.json public/evidence
+            git add -A -- public/reports/roadtest.json public/evidence
             if ! git diff --cached --quiet; then
-              git commit -m "ci: publish DeliveryOS Roadtest evidence"
+              git commit -m "ci: publish Roadtest evidence"
               git push
             fi
           fi
@@ -94,8 +106,8 @@ jobs:
         with:
           name: roadtest-evidence
           path: |
-            public/reports/deliveryos.json
-            public/evidence/deliveryos-first-visit.png
+            public/reports/roadtest.json
+            public/evidence/roadtest-first-visit.png
             test-results/
           if-no-files-found: ignore
           retention-days: 14

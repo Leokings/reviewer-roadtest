@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f9f7f0">
-  <meta name="description" content="Reviewer Roadtest turns first-time user journeys and public transaction evidence into scoped, repeatable review reports.">
+  <meta name="description" content="Reviewer Roadtest turns first-time user journeys and public evidence into scoped, repeatable review reports.">
   <title>Reviewer Roadtest — evidence you can walk through</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,16 +17,16 @@
   <div class="site-shell">
     <header class="header wrap">
       <a href="#top" class="logo" aria-label="Reviewer Roadtest home"><span class="logo-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>reviewer<span class="logo-light">roadtest</span></span></a>
-      <nav aria-label="Main navigation"><a href="#how">How it works</a><a href="#report">Live report</a><a href="#agents">For agents</a></nav>
+      <nav aria-label="Main navigation"><a href="#how">How it works</a><a href="#create">Create a plan</a><a href="#report">Sample report</a><a href="#agents">For agents</a></nav>
       <a class="nav-cta" href="https://github.com/Leokings/reviewer-roadtest" target="_blank" rel="noreferrer">View source <span aria-hidden="true">↗</span></a>
     </header>
     <main id="top">
       <section class="hero wrap" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <div class="eyebrow"><span class="eyebrow-dot"></span> FIRST-TIME TESTING, WITH RECEIPTS</div>
+          <div class="eyebrow"><span class="eyebrow-dot"></span> FIRST-TIME TESTING, WITH EVIDENCE</div>
           <h1 id="hero-title">A better way to say <em>“it works.”</em></h1>
-          <p>Give a project a real first walk. Roadtest opens the site, follows a new visitor’s path, checks the public APIs and transaction receipts, then publishes what it could—and could not—verify.</p>
-          <div class="hero-actions"><a class="button button-primary" href="#report">See the DeliveryOS roadtest <span aria-hidden="true">↗</span></a><a class="button button-secondary" href="#how">How it works <span aria-hidden="true">→</span></a></div>
+          <p>Give any public project a real first walk. Define the path, run it in a clean browser, check public evidence, and share exactly what passed—and what was not tested.</p>
+          <div class="hero-actions"><a class="button button-primary" href="#create">Create a Roadtest plan <span aria-hidden="true">↗</span></a><a class="button button-secondary" href="#report">See a sample roadtest <span aria-hidden="true">→</span></a></div>
           <div class="hero-note"><span class="tiny-check">✓</span> No wallet or API key needed to read a report.</div>
         </div>
         <div class="hero-art" aria-hidden="true">
@@ -37,46 +37,50 @@
             <div class="map-bottom"><span>THE PATH A NEW USER TAKES</span><strong>↗</strong></div>
           </div>
           <div class="floating-ticket ticket-top"><span class="ticket-icon">✦</span><span>Not a demo.<br><strong>Evidence with limits.</strong></span></div>
-          <div class="floating-ticket ticket-bottom"><span class="ticket-tick">✓</span><span>Finalized <strong>≠</strong> successful<br><small>We check both.</small></span></div>
+          <div class="floating-ticket ticket-bottom"><span class="ticket-tick">✓</span><span>HTTP 200 <strong>≠</strong> claim proved<br><small>We check the contents.</small></span></div>
         </div>
       </section>
-      <section class="strip" aria-label="What a Roadtest contains"><div class="wrap strip-inner"><span>ONE TEST RUN. FOUR LENSES.</span><b>↗ First visit</b><b>↗ Public API</b><b>↗ Transaction result</b><b>↗ Evidence gaps</b></div></section>
+      <section class="strip" aria-label="What a Roadtest contains"><div class="wrap strip-inner"><span>ONE TEST RUN. FOUR LENSES.</span><b>↗ First visit</b><b>↗ Public reads</b><b>↗ Scoped claims</b><b>↗ Evidence gaps</b></div></section>
       <section class="how wrap" id="how" aria-labelledby="how-title">
         <div class="section-heading"><div><span class="kicker">THE IDEA</span><h2 id="how-title">A review trail, not a victory badge.</h2></div><p>Roadtest starts with a short list of claims, then records the checks that actually support each one. A pass applies only to that scope.</p></div>
         <div class="steps">
           <article class="step"><div class="step-icon icon-visit">⌁</div><span class="step-num">01 / FIRST VISIT</span><h3>Walk in fresh</h3><p>A clean browser follows the visible path a new user would take. No preconnected wallet or hidden test state.</p></article>
           <article class="step"><div class="step-icon icon-api">{ }</div><span class="step-num">02 / PUBLIC READS</span><h3>Ask the product</h3><p>Check public endpoints, contract identity, and current state against specific expected values.</p></article>
-          <article class="step"><div class="step-icon icon-receipt">◎</div><span class="step-num">03 / RECEIPTS</span><h3>Follow the transaction</h3><p>A finalized hash only counts when consensus and execution both indicate success.</p></article>
+          <article class="step"><div class="step-icon icon-receipt">◎</div><span class="step-num">03 / ASSERTIONS</span><h3>Check what matters</h3><p>Public responses are matched against declared expectations, with response hashes recorded.</p></article>
           <article class="step"><div class="step-icon icon-share">↗</div><span class="step-num">04 / OPEN REPORT</span><h3>Show the boundary</h3><p>Publish the checks, source links, screenshot, and an honest list of paths that remain untested.</p></article>
         </div>
       </section>
+      <section class="create wrap" id="create" aria-labelledby="create-title">
+        <div class="section-heading"><div><span class="kicker">MAKE A PLAN</span><h2 id="create-title">Start with your own first visit.</h2></div><p>Set one visible path. Download a plan your team or agent can run from the open-source runner. Nothing entered here is uploaded.</p></div>
+        <div class="builder-panel"><form id="plan-form"><div class="builder-fields"><label>Project name<input name="name" required maxlength="120" placeholder="My project"></label><label>Public site URL<input name="site" required type="url" maxlength="240" placeholder="https://my-project.example/"></label><label>Homepage headline<input name="headline" required maxlength="240" placeholder="What a new visitor sees"></label><label>Public example link<input name="exampleLink" required maxlength="240" placeholder="See an example"></label><label>Example page heading<input name="exampleHeading" required maxlength="240" placeholder="Example result"></label></div><div class="builder-actions"><button type="submit" class="button button-primary">Download my plan JSON <span aria-hidden="true">↓</span></button><span id="plan-status" role="status" aria-live="polite"></span></div></form><div class="builder-help"><span class="kicker">NEXT STEP</span><h3>Run it from the repo.</h3><p>Edit the downloaded file if you need API checks, then run it in CI or locally. The website does not execute arbitrary URLs on our servers.</p><code>npm run roadtest -- my-project.json</code><a href="https://github.com/Leokings/reviewer-roadtest#run-your-own-roadtest" target="_blank" rel="noreferrer">Runner instructions ↗</a></div></div>
+      </section>
       <section class="report-section" id="report" aria-labelledby="report-title"><div class="wrap">
-        <div class="section-heading report-heading"><div><span class="kicker">ROADTEST NO. 001</span><h2 id="report-title">DeliveryOS, first hand.</h2></div><p>Our first target is the live DeliveryOS v4 app on GenLayer Studionet. This run is read-only: it checks an earlier create-job transaction and a real consensus-reviewed example.</p></div>
+        <div class="section-heading report-heading"><div><span class="kicker">PUBLISHED EXAMPLE</span><h2 id="report-title">This site, first hand.</h2></div><p>We run the same public first-visit and resource checks on Roadtest itself. This self-check shows the report format; it does not prove that every other project works.</p></div>
         <div id="loading" class="loading-card" role="status">Loading the published report…</div>
         <div id="report-content" hidden>
-          <div class="report-hero"><div class="report-hero-main"><div class="report-overline">PUBLISHED, SCOPED EVIDENCE</div><h3 id="report-project">DeliveryOS</h3><p id="report-scope"></p><div class="report-meta"><span id="report-time"></span><span id="report-chain"></span><span id="report-contract"></span></div></div><div class="report-verdict"><span>REPORT RESULT</span><strong id="report-overall">—</strong><small>For the listed claims only</small></div></div>
-          <div class="report-actions"><a class="button button-dark" href="/reports/deliveryos.json" target="_blank" rel="noreferrer">Open machine-readable report ↗</a><button id="copy-report" class="button button-plain" type="button">Copy report link</button><a id="screenshot-link" class="button button-plain" href="/evidence/deliveryos-first-visit.png" target="_blank" rel="noreferrer">View browser screenshot ↗</a></div>
-          <div id="consensus-card" class="consensus-card" hidden><div class="consensus-emblem" aria-hidden="true">✳</div><div class="consensus-copy"><span class="kicker">SEPARATE GENLAYER ASSESSMENT</span><h3>First-visit explanation: <strong id="consensus-verdict">—</strong></h3><p id="consensus-scope"></p><div class="consensus-meta"><span id="consensus-contract"></span><span id="consensus-date"></span></div></div><div class="consensus-links"><a id="consensus-tx" target="_blank" rel="noreferrer">Finalized transaction ↗</a><a id="consensus-source" target="_blank" rel="noreferrer">Contract source ↗</a><a href="/assessments/deliveryos.json" target="_blank" rel="noreferrer">Assessment JSON ↗</a></div></div>
-          <div class="report-grid"><div class="report-main"><div class="card-title"><div><span class="kicker">WHAT THE RUN SUPPORTS</span><h3>Claims, one by one</h3></div><span id="claim-count" class="count-pill">—</span></div><div id="claim-list" class="claim-list"></div></div><aside class="report-side"><div class="side-icon">↗</div><span class="kicker">TRY A QUICK RECHECK</span><h3>Is the live evidence still there?</h3><p>This makes fresh browser-side reads of the public API. It does not replace the dated CI run below.</p><button id="recheck" class="button button-primary" type="button">Refresh live reads <span aria-hidden="true">↻</span></button><div id="recheck-result" class="recheck-result" aria-live="polite"></div></aside></div>
-          <div class="checks-head"><div><span class="kicker">THE RECEIPTS</span><h3>Every check is visible.</h3></div><div class="filter" role="group" aria-label="Filter checks"><button type="button" data-filter="all" class="active" aria-pressed="true">All</button><button type="button" data-filter="live-api" aria-pressed="false">API + chain</button><button type="button" data-filter="browser-runner" aria-pressed="false">Browser</button></div></div>
+          <div class="report-hero"><div class="report-hero-main"><div class="report-overline">PUBLISHED, SCOPED EVIDENCE</div><h3 id="report-project">Reviewer Roadtest</h3><p id="report-scope"></p><div class="report-meta"><span id="report-time"></span><span id="report-target"></span></div></div><div class="report-verdict"><span>REPORT RESULT</span><strong id="report-overall">—</strong><small>For the listed claims only</small></div></div>
+          <div class="report-actions"><a class="button button-dark" href="/reports/roadtest.json" target="_blank" rel="noreferrer">Open machine-readable report ↗</a><button id="copy-report" class="button button-plain" type="button">Copy report link</button><a id="screenshot-link" class="button button-plain" href="/evidence/roadtest-first-visit.png" target="_blank" rel="noreferrer">View browser screenshot ↗</a></div>
+          <div id="consensus-card" class="consensus-card" hidden><div class="consensus-emblem" aria-hidden="true">✳</div><div class="consensus-copy"><span class="kicker">SEPARATE GENLAYER ASSESSMENT</span><h3>First-visit explanation: <strong id="consensus-verdict">—</strong></h3><p id="consensus-scope"></p><div class="consensus-meta"><span id="consensus-contract"></span><span id="consensus-date"></span></div></div><div class="consensus-links"><a id="consensus-tx" target="_blank" rel="noreferrer">Finalized transaction ↗</a><a id="consensus-source" target="_blank" rel="noreferrer">Contract source ↗</a><a href="/assessments/roadtest.json" target="_blank" rel="noreferrer">Assessment JSON ↗</a></div></div>
+          <div class="report-grid"><div class="report-main"><div class="card-title"><div><span class="kicker">WHAT THE RUN SUPPORTS</span><h3>Claims, one by one</h3></div><span id="claim-count" class="count-pill">—</span></div><div id="claim-list" class="claim-list"></div></div><aside class="report-side"><div class="side-icon">↗</div><span class="kicker">RUN IT YOURSELF</span><h3>Use the same runner on your site.</h3><p>Download a plan above, review its checks, and run it with your team or agent. CI can publish dated reports when you choose to automate it.</p><a class="button button-primary" href="https://github.com/Leokings/reviewer-roadtest#run-your-own-roadtest" target="_blank" rel="noreferrer">Get the runner <span aria-hidden="true">↗</span></a></aside></div>
+          <div class="checks-head"><div><span class="kicker">THE CHECKS</span><h3>Every check is visible.</h3></div><div class="filter" role="group" aria-label="Filter checks"><button type="button" data-filter="all" class="active" aria-pressed="true">All</button><button type="button" data-filter="live-api" aria-pressed="false">Public reads</button><button type="button" data-filter="browser-runner" aria-pressed="false">Browser</button></div></div>
           <div id="check-list" class="check-list"></div>
-          <div class="limits"><div class="limits-heading"><span class="limits-symbol">!</span><div><span class="kicker">IMPORTANT CONTEXT</span><h3>What this does not prove</h3></div></div><ul id="not-tested"></ul><p>API responses are operated by the project. Browser screenshots come from the CI runner. They are useful review evidence, not cryptographic proof of every click or a security guarantee.</p></div>
+          <div class="limits"><div class="limits-heading"><span class="limits-symbol">!</span><div><span class="kicker">IMPORTANT CONTEXT</span><h3>What this does not prove</h3></div></div><ul id="not-tested"></ul><p>Public responses are operated by the target. Browser screenshots come from the CI runner. These are review evidence, not cryptographic proof of every click or a security guarantee.</p></div>
         </div>
       </div></section>
-      <section class="agents wrap" id="agents" aria-labelledby="agents-title"><div class="agents-copy"><span class="kicker">BUILT FOR AGENTS TOO</span><h2 id="agents-title">Let your agent read the receipts.</h2><p>No API key is needed for public reports. An agent can fetch the JSON, inspect each claim and transaction link, and decide whether the scope is enough for its own workflow. Teams can run the same test suite in CI against a configured target. With its own Studionet wallet, it can also request a separate first-visit assessment from the GenLayer contract.</p><div class="agent-links"><a href="/reports/deliveryos.json">Report JSON ↗</a><a href="/openapi.json">OpenAPI ↗</a><a href="https://github.com/Leokings/reviewer-roadtest" target="_blank" rel="noreferrer">CI runner ↗</a></div></div><div class="code-card"><div class="code-top"><span>GET /reports/deliveryos.json</span><span>PUBLIC · NO KEY</span></div><pre><code id="agent-code">{
+      <section class="agents wrap" id="agents" aria-labelledby="agents-title"><div class="agents-copy"><span class="kicker">BUILT FOR AGENTS TOO</span><h2 id="agents-title">Let your agent read the evidence.</h2><p>Agents can fetch the public report JSON without a key, inspect each scoped claim, or run the open-source tester against their own plan. A separate GenLayer contract can assess a public landing page with an authorized Studionet wallet.</p><div class="agent-links"><a href="/reports/roadtest.json">Report JSON ↗</a><a href="/openapi.json">OpenAPI ↗</a><a href="/roadtest.template.json">Starter plan ↗</a><a href="https://github.com/Leokings/reviewer-roadtest" target="_blank" rel="noreferrer">Runner ↗</a></div></div><div class="code-card"><div class="code-top"><span>GET /reports/roadtest.json</span><span>PUBLIC · NO KEY</span></div><pre><code id="agent-code">{
   "overall": "PASS",
   "claims": [{
-    "id": "reviewed-example",
+    "id": "fresh-visitor",
     "status": "PASS",
     "check_ids": [
-      "example-job",
-      "review-transaction"
+      "first-visit-heading",
+      "sample-path"
     ]
   }],
   "not_tested": ["…"]
 }</code></pre><div class="code-bottom">A pass is scoped. Read <code>not_tested</code> before relying on it.</div></div></section>
     </main>
-    <footer class="footer"><div class="wrap footer-grid"><div><a href="#top" class="logo"><span class="logo-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>reviewer<span class="logo-light">roadtest</span></span></a><p>Make the first walk count.</p></div><div class="footer-links"><a href="#how">How it works</a><a href="#report">DeliveryOS report</a><a href="/llms.txt">Agent guide</a><a href="https://github.com/Leokings/reviewer-roadtest" target="_blank" rel="noreferrer">Source</a></div><small>Read-only report viewer. No funds moved. No claim of a full security audit.</small></div></footer>
+    <footer class="footer"><div class="wrap footer-grid"><div><a href="#top" class="logo"><span class="logo-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>reviewer<span class="logo-light">roadtest</span></span></a><p>Make the first walk count.</p></div><div class="footer-links"><a href="#how">How it works</a><a href="#create">Create a plan</a><a href="#report">Sample report</a><a href="/llms.txt">Agent guide</a><a href="https://github.com/Leokings/reviewer-roadtest" target="_blank" rel="noreferrer">Source</a></div><small>Read-only report viewer. No funds moved. No claim of a full security audit.</small></div></footer>
   </div>
 </body>
 </html>

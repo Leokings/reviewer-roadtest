@@ -1,54 +1,60 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { fetchJson, isAddress, isFullHash, overallStatus, runApiChecks, sha256, summarizeClaims, validateConfig } from "../lib/checks.mjs";
+import { evaluateAssertions, fetchDocument, overallStatus, publicOrigin, runHttpChecks, sha256, summarizeClaims, validateConfig } from "../lib/checks.mjs";
 
-const config = JSON.parse(await readFile(new URL("../configs/deliveryos.json", import.meta.url), "utf8"));
+const config = JSON.parse(await readFile(new URL("../configs/roadtest.json", import.meta.url), "utf8"));
 
-test("config is intentionally scoped and hashes are exact-length", () => {
+test("a reusable plan validates checks and claim coverage", () => {
   assert.equal(validateConfig(config), config);
-  assert.equal(isAddress(config.contract), true);
-  assert.equal(isFullHash(config.review_tx), true);
-  assert.equal(isFullHash("0xabc"), false);
+  assert.equal(publicOrigin(config.site), "https://reviewer-roadtest.vercel.app");
   assert.throws(() => validateConfig({ ...config, site: "http://localhost/" }), /HTTPS/);
+  assert.throws(() => validateConfig({ ...config, site: "https://127.0.0.1/" }), /HTTPS/);
+  assert.throws(() => validateConfig({ ...config, http_checks: [{ ...config.http_checks[0], path: "//private/" }] }), /same-origin/);
+  assert.throws(() => validateConfig({ ...config, claims: [{ id: "bad", text: "Bad claim", checks: ["unknown"] }] }), /unknown check/);
 });
 
-test("SHA-256 uses response bytes", () => {
+test("response hashes use exact bytes", () => {
   assert.equal(sha256(Buffer.from("hello")), "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
 });
 
-test("all relevant receipts must prove execution, not just finalization", async () => {
-  const values = new Map([
-    ["/api/v4/health", { status: "ok", protocol: "DELIVERYOS_PACKAGES_V4", chain_id: 61999, contract_address: config.contract }],
-    [`/api/v4/jobs/${config.example_job_id}`, { job_id: config.example_job_id, status: "ACCEPTED", decision_source: "CONSENSUS", chain_id: 61999, contract: config.contract, latest_statuses: ["MET", "MET"] }],
-    [`/api/transactions/${config.review_tx}`, { transaction_hash: config.review_tx, status: "FINALIZED", consensus_result: "MAJORITY_AGREE", execution_result: "REVERTED", finalized_success: false }],
-    [`/api/transactions/${config.browser_write_tx}`, { transaction_hash: config.browser_write_tx, status: "FINALIZED", consensus_result: "MAJORITY_AGREE", execution_result: "SUCCESS", finalized_success: true }],
-    [`/api/v4/jobs/${config.browser_write_job_id}`, { job_id: config.browser_write_job_id, protocol: "DELIVERYOS_PACKAGES_V4", contract: config.contract, chain_id: 61999 }]
-  ]);
+test("HTTP assertions require exact expected values, not only a 200", async () => {
   const fakeFetch = async (url) => {
-    const value = values.get(new URL(url).pathname);
-    return { ok: Boolean(value), status: value ? 200 : 404, arrayBuffer: async () => Buffer.from(JSON.stringify(value)) };
+    const path = new URL(url).pathname;
+    if (path === "/openapi.json") return new Response(JSON.stringify({ openapi: "3.1.0", info: { title: "Wrong title" } }), { status: 200 });
+    if (path === "/llms.txt") return new Response("Reviewer Roadtest with no API key", { status: 200 });
+    return new Response(JSON.stringify({ id: "my-project" }), { status: 200 });
   };
-  const checks = await runApiChecks(config, fakeFetch);
-  assert.equal(checks.find((check) => check.id === "review-transaction")?.result, "FAIL");
-  const claims = summarizeClaims(config, checks);
-  assert.equal(claims.find((claim) => claim.id === "reviewed-example")?.status, "FAIL");
-  assert.equal(overallStatus(claims), "FAIL");
+  const checks = await runHttpChecks(config, fakeFetch);
+  assert.equal(checks.find((check) => check.id === "openapi")?.result, "FAIL");
+  assert.equal(checks.find((check) => check.id === "agent-guide")?.result, "PASS");
+  assert.equal(summarizeClaims(config, checks).find((claim) => claim.id === "agent-resources")?.status, "FAIL");
 });
 
-test("missing check never becomes a pass", () => {
+test("malformed JSON and redirects are inconclusive, never a pass", async () => {
+  const malformed = await runHttpChecks(config, async () => new Response("not json", { status: 200 }));
+  assert.equal(malformed.find((check) => check.id === "openapi")?.result, "INCONCLUSIVE");
+  const redirected = await fetchDocument(config.site + "openapi.json", async () => new Response(null, { status: 302, headers: { location: "https://other.example/" } })).catch((error) => error);
+  assert.match(redirected.message, /HTTP 302/);
+});
+
+test("oversized responses are rejected before becoming evidence", async () => {
+  const result = await fetchDocument("https://example.org/large", async () => new Response("x".repeat(100), { status: 200 }), { maxBytes: 40 }).catch((error) => error);
+  assert.match(result.message, /exceeds/);
+});
+
+test("missing evidence cannot create a passing claim", () => {
   const claims = summarizeClaims(config, []);
   assert.equal(overallStatus(claims), "INCONCLUSIVE");
 });
 
-test("a definite failed check is not hidden by another missing check", () => {
-  const claims = summarizeClaims(config, [{ id: "example-job", result: "FAIL" }]);
-  assert.equal(claims.find((claim) => claim.id === "reviewed-example")?.status, "FAIL");
+test("a definite failure is not hidden by a missing check", () => {
+  const claims = summarizeClaims(config, [{ id: "openapi", result: "FAIL" }]);
+  assert.equal(claims.find((claim) => claim.id === "agent-resources")?.status, "FAIL");
   assert.equal(overallStatus(claims), "FAIL");
 });
 
-test("HTTP failures stay inconclusive instead of becoming false proof", async () => {
-  const response = await fetchJson("https://example.com/a", async () => ({ ok: true, arrayBuffer: async () => Buffer.from('{"ok":true}') }));
-  assert.equal(response.value.ok, true);
-  assert.match(response.sha256, /^[0-9a-f]{64}$/);
+test("text and JSON comparisons are explicit", () => {
+  assert.equal(evaluateAssertions({ format: "text", assertions: [{ includes: "hello" }] }, "hello world").ok, true);
+  assert.equal(evaluateAssertions({ format: "json", assertions: [{ field: "nested.ok", equals: true }] }, '{"nested":{"ok":false}}').ok, false);
 });

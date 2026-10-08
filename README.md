@@ -1,26 +1,16 @@
 # Reviewer Roadtest
 
-Reviewer Roadtest turns a first-time-user path, public API reads, and transaction receipts into a narrowly scoped, machine-readable report. Its first adapter tests [DeliveryOS](https://deliveryos-tau-wheat.vercel.app/) v4 on GenLayer Studionet.
+An independent, open-source tool for testing a public project's first-time-user path and publishing a narrowly scoped evidence report. The [website](https://reviewer-roadtest.vercel.app/) lets a person create a test plan and read a dated example report. Agents can read the same JSON and run the tester from this repository. No wallet or API key is needed to read a report.
 
-The website is a public report viewer. The runner is a Playwright/Node test that runs locally or in GitHub Actions. The report JSON is the agent-facing API; no API key is needed to read it. A passing report is **not** a full security audit.
+The published example checks Reviewer Roadtest's own site. It is a self-check, **not** a certificate for other projects or a full security audit.
 
-A separate GenLayer Intelligent Contract assesses one genuinely subjective question: whether a first-time visitor can understand the product, find a real example without a wallet, and understand why signing is needed for writes. Validators independently fetch the public landing page and compare their categorical judgments. This result is displayed separately from the CI report.
+## First-time use
 
-## First-time visitor
+1. Open the website and choose **Create a Roadtest plan**.
+2. Enter a public HTTPS homepage, its exact accessible headline, the public-example link text, and the heading expected after clicking that link. Download the JSON.
+3. Run that plan from this repository, or have an agent run it in CI. Review the generated report and screenshot before publishing them.
 
-1. Open the website and choose **See the DeliveryOS roadtest**.
-2. Read the four scoped claims and the checks supporting each one.
-3. Open the linked job and transaction evidence. A transaction counts only when it is finalized **and** executed successfully.
-4. Open the screenshot to see the browser-runner's first-visit path, and read **What this does not prove** before relying on the report.
-5. Press **Refresh live reads** to check three public DeliveryOS endpoints again. This is a browser-side recheck, not a newly published CI report.
-
-## For agents
-
-Fetch /reports/deliveryos.json. Inspect overall, every claims[].status, claims[].check_ids, checks, evidence_model, and not_tested. Treat PASS as applying only to the named claims. Fetch /assessments/deliveryos.json for the separate GenLayer verdict, contract address, and finalized transaction. Both are plain public JSON; /openapi.json and /llms.txt describe them.
-
-An agent running its own tests can install this repository, adapt configs/deliveryos.json and the check adapter in lib/checks.mjs, then run npm run roadtest. The current runner is **DeliveryOS-specific**; adding a target requires defining and reviewing its assertions, not merely changing a URL.
-
-## Reproduce
+## Run your own Roadtest
 
 Requires Node 24 and Playwright Chromium:
 
@@ -28,40 +18,29 @@ Requires Node 24 and Playwright Chromium:
 npm ci
 npx playwright install chromium
 npm test
-npm run roadtest
-npm run serve
+npm run roadtest -- path/to/my-project.json
 ~~~
 
-In a second terminal, run node tests/site.mjs. The live runner writes public/reports/deliveryos.json and public/evidence/deliveryos-first-visit.png. The browser test writes desktop/mobile screenshots under ignored test-results/.
+The plan is also available as [a starter file](public/roadtest.template.json). The runner supports browser checks for visible headings, links, and buttons; one click followed by an expected visible result; uncaught page errors; and same-origin JSON/text HTTP assertions. Each check must support an explicit claim. The report includes exact response SHA-256 values and `not_tested` limitations. A failed or inconclusive assertion makes the command fail, so it can gate CI.
 
-GitHub Actions runs the unit tests, browser/HTTP Roadtest, and report viewer check. A dated report is committed even if the live assertions fail or become inconclusive, and the workflow becomes red. The site therefore does not silently preserve a stale green result after a failed scheduled run.
+Do not put secrets in a plan or run plans from untrusted people in privileged CI. The runner deliberately does not accept arbitrary JavaScript, credentials, private evidence, or hosted anonymous jobs.
 
-## Evidence boundaries
+## For agents
 
-- The read-only v1 run does **not** sign a new transaction. It checks a previously recorded create-job transaction and a consensus-reviewed example. DeliveryOS describes that earlier transaction as browser-originated, but the receipt alone cannot prove where it was signed.
-- DeliveryOS operates the public API. Roadtest records exact response SHA-256 values but the API responses are not independent chain proof.
-- The screenshot records what an automated browser observed. It is not a trustless proof of clicks.
-- The GenLayer contract judges server-rendered landing-page text, not a full interactive browser session. Its CLEAR verdict is about the explanation, not software correctness.
-- A full bilateral lifecycle, wallet compatibility matrix, mobile interactions, and security audit are outside the current claims.
-- There is no hosted general-purpose test queue, custodial wallet, payment flow, or GenLayer verdict covering the entire CI report in this first release.
+Fetch [the report JSON](https://reviewer-roadtest.vercel.app/reports/roadtest.json), [OpenAPI](https://reviewer-roadtest.vercel.app/openapi.json), and [the agent guide](https://reviewer-roadtest.vercel.app/llms.txt). Inspect `overall`, every `claims[].status`, the supporting `checks`, `evidence_model`, and `not_tested`. A `PASS` applies only to the declared checks, not to the whole product.
 
-## Project boundary
+An agent can edit a plan and run `npm run roadtest -- path/to/plan.json`. The public website is a plan builder and report viewer; it is **not** an on-demand execution API.
 
-The public website is static, the CI runner fetches and tests external evidence, and the JSON report remains inspectable. The GenLayer contract is limited to the qualitative first-visit question; it does not put a deterministic CI status on-chain merely to decorate it with a badge. A future consensus verifier for transaction or browser evidence would need independent checks beyond a hash of this runner's report.
+## GenLayer boundary
 
-## GenLayer contract
+The [OnboardingRoadtest intelligent contract](contracts/OnboardingRoadtest.py) answers one subjective question: does a public landing page clearly explain the product, show a wallet-free result to inspect, and distinguish reads from signed writes? GenLayer validators independently fetch and judge the page. This assessment is separate from deterministic browser/HTTP checks. It does **not** attest the CI screenshot, transaction receipts, or overall software correctness.
 
-Studionet chain 61999 contract: 0x565096782FE263BEFaDC65a0A5796dd2544116bB. The DeliveryOS assessment ID is deliveryos_v4_first_visit. Its [assessment transaction](https://explorer-studio.genlayer.com/tx/0x38d03824869fffcfdf1ede69e6189ed77939e215fd632acac8c7cb73647d3acc) is FINALIZED with MAJORITY_AGREE and successful leader execution; a fresh contract read returned CLEAR. The source is contracts/OnboardingRoadtest.py.
+Studionet contract: `0x565096782FE263BEFaDC65a0A5796dd2544116bB`. With your own authorized Studionet wallet, call `assess(unique_id, https://public-site.example/)`, wait for `FINALIZED`, inspect successful execution, and then read `get_assessment(unique_id)`. Never put a private key in the site, repository, or chat. The contract uses a pinned GenVM runner; lint, direct tests, and a real Studionet consensus run are part of this repository's evidence.
 
-An agent with its own authorized Studionet wallet can request an assessment of a public HTTPS landing-page root:
+## What remains outside this release
 
-~~~sh
-genlayer network set studionet
-genlayer write 0x565096782FE263BEFaDC65a0A5796dd2544116bB assess --args my_unique_review_01 https://example.com/
-~~~
+- A hosted queue that executes arbitrary third-party URLs, with authentication, abuse controls, and safe browser isolation.
+- Signed-wallet, transaction-specific, and multi-party workflows. The generic runner does not yet validate chain receipts.
+- Independent on-chain verification of an entire browser/HTTP report; the current GenLayer verdict covers first-visit explanatory clarity only.
 
-Save the returned transaction hash, wait for FINALIZED, check successful execution, then call get_assessment with the chosen ID. Do not put a private key in a website, repository, or chat. Assessments are public and immutable by ID. The caller pays no GEN on Studionet, but the service is rate-limited.
-
-The pinned runner header is the first line of the contract. GenVM lint and a full Studionet consensus integration test passed. Direct-mode tests are included, but the current genlayer-test 0.29.2 runner expects a removed GenVM release asset; CI supplies the renamed official runner archive to exercise them.
-
-MIT licensed.
+The site is static on Vercel. GitHub Actions runs the self-check on push and daily, commits the dated report even when it fails, and marks failing evidence red in CI. MIT licensed.

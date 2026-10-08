@@ -1,0 +1,27 @@
+{
+  "id": "roadtest",
+  "name": "Reviewer Roadtest",
+  "site": "https://reviewer-roadtest.vercel.app/",
+  "source": "https://github.com/Leokings/reviewer-roadtest",
+  "scope": "A fresh browser can find this site's headline and public example. Three public machine-readable resources remain available. This is a self-check, not a security audit or proof that other targets pass.",
+  "browser_checks": [
+    { "id": "first-visit-heading", "title": "The first-visit purpose is visible", "type": "visible", "role": "heading", "name": "A better way to say “it works.”" },
+    { "id": "sample-path", "title": "A visitor can open the sample without signing in", "type": "click", "role": "link", "name": "See a sample roadtest", "after": { "role": "heading", "name": "This site, first hand." } },
+    { "id": "browser-javascript", "title": "No uncaught page error on the tested path", "type": "no-page-errors" }
+  ],
+  "http_checks": [
+    { "id": "openapi", "title": "The public API description is reachable", "path": "/openapi.json", "format": "json", "assertions": [{ "field": "openapi", "equals": "3.1.0" }, { "field": "info.title", "equals": "Reviewer Roadtest API" }] },
+    { "id": "agent-guide", "title": "The agent guide is public", "path": "/llms.txt", "format": "text", "assertions": [{ "includes": "Reviewer Roadtest" }, { "includes": "no API key" }] },
+    { "id": "starter-config", "title": "A reusable starter configuration is available", "path": "/roadtest.template.json", "format": "json", "assertions": [{ "field": "id", "equals": "my-project" }] }
+  ],
+  "claims": [
+    { "id": "fresh-visitor", "text": "A first-time visitor can see the main headline and reach the public example without a wallet.", "checks": ["first-visit-heading", "sample-path", "browser-javascript"] },
+    { "id": "agent-resources", "text": "An agent can read the public API description, guidance, and a starter configuration without a key.", "checks": ["openapi", "agent-guide", "starter-config"] }
+  ],
+  "not_tested": [
+    "Other projects or arbitrary user-submitted URLs",
+    "Signed wallet transactions or financial flows",
+    "Every browser, wallet, accessibility setting, or device",
+    "Security properties beyond these named checks"
+  ]
+}

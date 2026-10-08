@@ -1,4 +1,4 @@
-const REPORT_URL = "/reports/deliveryos.json";
+const REPORT_URL = "/reports/roadtest.json";
 const $ = (selector) => document.querySelector(selector);
 let publishedReport;
 let activeFilter = "all";
@@ -17,9 +17,7 @@ function safeEvidenceUrl(value) {
   try {
     const url = new URL(value);
     return url.protocol === "https:" ? url.href : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 function renderClaims(report) {
@@ -58,7 +56,7 @@ function renderChecks(report) {
       const link = text(document.createElement("a"), "Open evidence ↗");
       link.href = evidence;
       link.target = "_blank";
-      link.rel = "noreferrer";
+      link.rel = "noreferrer noopener";
       link.className = "check-link";
       row.append(link);
     }
@@ -67,31 +65,34 @@ function renderChecks(report) {
 }
 
 function renderReport(report) {
-  if (report.protocol !== "ROADTEST_REPORT_V1" || !Array.isArray(report.checks) || !Array.isArray(report.claims) || !Array.isArray(report.not_tested)) {
+  if (report.protocol !== "ROADTEST_REPORT_V1" || !Array.isArray(report.checks) || !Array.isArray(report.claims) ||
+      !Array.isArray(report.not_tested) || !report.project?.name || !safeEvidenceUrl(report.project.site)) {
     throw new Error("Published report has an unsupported format.");
   }
   publishedReport = report;
   text($("#report-project"), report.project.name);
   text($("#report-scope"), report.scope);
   text($("#report-time"), "Run " + new Date(report.completed_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }));
-  text($("#report-chain"), report.project.network + " · " + report.project.chain_id);
-  text($("#report-contract"), "Contract " + short(report.project.contract));
+  text($("#report-target"), new URL(report.project.site).hostname);
   text($("#report-overall"), report.overall);
   $(".report-verdict").dataset.status = report.overall;
   const screenshot = $("#screenshot-link");
   screenshot.hidden = typeof report.screenshot !== "string" || !/^evidence\/[a-z0-9-]+\.png$/.test(report.screenshot);
   if (!screenshot.hidden) screenshot.href = "/" + report.screenshot;
-  text($("#agent-code"), JSON.stringify({ overall: report.overall, claims: report.claims.slice(0, 1).map((claim) => ({ id: claim.id, status: claim.status, check_ids: claim.check_ids })), not_tested: ["See full report"] }, null, 2));
+  text($("#agent-code"), JSON.stringify({ overall: report.overall,
+    claims: report.claims.slice(0, 1).map((claim) => ({ id: claim.id, status: claim.status, check_ids: claim.check_ids })),
+    not_tested: ["See full report"] }, null, 2));
   renderClaims(report);
   renderChecks(report);
-  const gaps = $("#not-tested");
-  gaps.replaceChildren(...report.not_tested.map((item) => text(document.createElement("li"), item)));
+  $("#not-tested").replaceChildren(...report.not_tested.map((item) => text(document.createElement("li"), item)));
   $("#loading").hidden = true;
   $("#report-content").hidden = false;
 }
 
 function renderAssessment(assessment) {
   if (assessment.protocol !== "ROADTEST_ONBOARDING_V1" || !["CLEAR", "PARTIAL", "UNCLEAR"].includes(assessment.verdict) ||
+      assessment.landing_url !== publishedReport?.project.site || assessment.transaction_status !== "FINALIZED" ||
+      assessment.execution_result !== "SUCCESS" || !["AGREE", "MAJORITY_AGREE"].includes(assessment.consensus_result) ||
       !/^0x[0-9a-fA-F]{40}$/.test(assessment.contract_address) || !/^0x[0-9a-fA-F]{64}$/.test(assessment.transaction_hash)) {
     throw new Error("Unsupported on-chain assessment record.");
   }
@@ -115,40 +116,7 @@ async function readJson(url) {
     const response = await fetch(url, { cache: "no-store", headers: { accept: "application/json" }, signal: controller.signal });
     if (!response.ok) throw new Error("HTTP " + response.status);
     return await response.json();
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-async function quickRecheck() {
-  if (!publishedReport) return;
-  const button = $("#recheck");
-  const output = $("#recheck-result");
-  button.disabled = true;
-  output.classList.remove("error");
-  text(output, "Reading the current public endpoints…");
-  try {
-    const checks = publishedReport.checks;
-    const healthUrl = checks.find((check) => check.id === "api-health")?.evidence_url;
-    const jobUrl = checks.find((check) => check.id === "example-job")?.evidence_url;
-    const txUrl = checks.find((check) => check.id === "review-transaction")?.evidence_url;
-    const expectedOrigin = new URL(publishedReport.project.site).origin;
-    if (![healthUrl, jobUrl, txUrl].every((url) => safeEvidenceUrl(url) && new URL(url).origin === expectedOrigin)) {
-      throw new Error("The published evidence URLs failed origin validation.");
-    }
-    const [health, job, tx] = await Promise.all([readJson(healthUrl), readJson(jobUrl), readJson(txUrl)]);
-    const healthOk = health.status === "ok" && health.chain_id === publishedReport.project.chain_id && health.contract_address?.toLowerCase() === publishedReport.project.contract.toLowerCase();
-    const jobOk = job.status === "ACCEPTED" && job.decision_source === "CONSENSUS" && job.contract?.toLowerCase() === publishedReport.project.contract.toLowerCase();
-    const txOk = tx.status === "FINALIZED" && tx.finalized_success === true && ["SUCCESS", "FINISHED_WITH_RETURN"].includes(tx.execution_result);
-    const passed = [healthOk, jobOk, txOk].filter(Boolean).length;
-    text(output, passed + "/3 live reads match the published expectations. " + (passed === 3 ? "The historical example is still available." : "Inspect the API links; at least one assertion changed."));
-    output.classList.toggle("error", passed !== 3);
-  } catch (error) {
-    text(output, "Live recheck is inconclusive: " + error.message + ". The dated CI report remains available.");
-    output.classList.add("error");
-  } finally {
-    button.disabled = false;
-  }
+  } finally { clearTimeout(timer); }
 }
 
 document.querySelectorAll("[data-filter]").forEach((button) => {
@@ -162,25 +130,57 @@ document.querySelectorAll("[data-filter]").forEach((button) => {
     if (publishedReport) renderChecks(publishedReport);
   });
 });
-$("#recheck").addEventListener("click", quickRecheck);
+
 $("#copy-report").addEventListener("click", async () => {
   const button = $("#copy-report");
   try {
     await navigator.clipboard.writeText(new URL(REPORT_URL, location.origin).href);
     text(button, "Link copied ✓");
-  } catch {
-    text(button, "Copy unavailable — open the JSON link");
-  }
+  } catch { text(button, "Copy unavailable — open the JSON link"); }
   setTimeout(() => text(button, "Copy report link"), 3000);
+});
+
+$("#plan-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const output = $("#plan-status");
+  const values = Object.fromEntries(new FormData(event.currentTarget));
+  try {
+    const url = new URL(values.site);
+    const host = url.hostname.toLowerCase();
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash || url.pathname !== "/" || url.port ||
+        !/^[a-z0-9.-]+$/.test(host) || !host.includes(".") || host.includes("..") ||
+        host.endsWith(".") || host.endsWith(".local") || host.endsWith(".internal") || host.endsWith(".test") || host.endsWith(".localhost") ||
+        /^\d+(?:\.\d+){3}$/.test(host)) throw new Error("Use a public HTTPS homepage URL.");
+    let id = values.name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48);
+    if (id.length < 2) id = "my-project";
+    const config = {
+      id, name: values.name.trim(), site: url.href,
+      scope: "A clean browser can identify the product and open one public example. Only the named path is tested.",
+      browser_checks: [
+        { id: "first-heading", title: "Purpose is visible", type: "visible", role: "heading", name: values.headline.trim() },
+        { id: "example-path", title: "Public example opens", type: "click", role: "link", name: values.exampleLink.trim(), after: { role: "heading", name: values.exampleHeading.trim() } },
+        { id: "browser-errors", title: "No uncaught page errors", type: "no-page-errors" }
+      ],
+      http_checks: [],
+      claims: [{ id: "first-visit", text: "A new visitor can find the product and a public example.", checks: ["first-heading", "example-path", "browser-errors"] }],
+      not_tested: ["Wallet writes", "Private evidence", "Security outside these checks"]
+    };
+    const blob = new Blob([JSON.stringify(config, null, 2) + "\n"], { type: "application/json" });
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = `${id}.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 30000);
+    text(output, `Downloaded ${id}.json. Run it from the repository.`);
+  } catch (error) {
+    text(output, error.message);
+  }
 });
 
 try {
   renderReport(await readJson(REPORT_URL));
-  try {
-    renderAssessment(await readJson("/assessments/deliveryos.json"));
-  } catch (error) {
-    console.warn("GenLayer assessment is unavailable:", error.message);
-  }
+  try { renderAssessment(await readJson("/assessments/roadtest.json")); } catch { /* The separate assessment is optional. */ }
 } catch (error) {
-  text($("#loading"), "The published report could not be loaded: " + error.message);
+  text($("#loading"), "The published example is not available yet: " + error.message);
 }

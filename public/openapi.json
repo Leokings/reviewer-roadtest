@@ -1,32 +1,38 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Reviewer Roadtest Public Reports",
-    "version": "0.1.0",
-    "description": "Read-only, static report endpoint. No API key or wallet is needed. PASS applies only to the included scoped claims."
+    "title": "Reviewer Roadtest API",
+    "version": "0.2.0",
+    "description": "Read-only public reports and a separate GenLayer assessment. No API key is needed. The website does not execute arbitrary targets; use the open-source runner for that."
   },
   "servers": [{ "url": "https://reviewer-roadtest.vercel.app" }],
   "paths": {
-    "/assessments/deliveryos.json": {
+    "/reports/roadtest.json": {
       "get": {
-        "summary": "Get the separate GenLayer first-visit assessment and its finalized transaction",
+        "summary": "Read the latest scoped self-check report",
         "responses": {
           "200": {
-            "description": "Public assessment record; verify on Studionet via contract address and transaction hash",
+            "description": "Dated CI report with claims, checks, evidence boundaries, and untested paths",
+            "content": { "application/json": { "schema": { "type": "object", "required": ["protocol", "report_id", "project", "checks", "claims", "overall", "not_tested"] } } }
+          }
+        }
+      }
+    },
+    "/assessments/roadtest.json": {
+      "get": {
+        "summary": "Read a separate GenLayer first-visit clarity assessment",
+        "responses": {
+          "200": {
+            "description": "Public assessment record; verify it by contract address and transaction hash",
             "content": { "application/json": { "schema": { "type": "object", "required": ["protocol", "contract_address", "assessment_id", "verdict", "transaction_hash", "scope"] } } }
           }
         }
       }
     },
-    "/reports/deliveryos.json": {
+    "/roadtest.template.json": {
       "get": {
-        "summary": "Get the latest published DeliveryOS roadtest",
-        "responses": {
-          "200": {
-            "description": "Roadtest report with claims, checks, evidence boundaries, and untested paths",
-            "content": { "application/json": { "schema": { "type": "object", "required": ["protocol", "report_id", "project", "checks", "claims", "overall", "not_tested"] } } }
-          }
-        }
+        "summary": "Download a starter configuration for the open-source runner",
+        "responses": { "200": { "description": "Editable JSON plan for another public site" } }
       }
     }
   }

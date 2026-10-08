@@ -1,0 +1,16 @@
+{
+  "id": "my-project",
+  "name": "Your project",
+  "site": "https://example.org/",
+  "scope": "A clean browser can identify the product and open a public example. Change the URL and exact accessible names before running.",
+  "browser_checks": [
+    { "id": "first-heading", "title": "Purpose is visible", "type": "visible", "role": "heading", "name": "Your first-visit headline" },
+    { "id": "example-path", "title": "Public example opens", "type": "click", "role": "link", "name": "See an example", "after": { "role": "heading", "name": "Example result" } },
+    { "id": "browser-errors", "title": "No uncaught page errors", "type": "no-page-errors" }
+  ],
+  "http_checks": [],
+  "claims": [
+    { "id": "first-visit", "text": "A new visitor can find the product and a public example.", "checks": ["first-heading", "example-path", "browser-errors"] }
+  ],
+  "not_tested": ["Wallet writes", "Private evidence", "Security outside these checks"]
+}

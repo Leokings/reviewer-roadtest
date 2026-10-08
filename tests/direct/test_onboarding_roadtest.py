@@ -15,12 +15,12 @@ def test_invalid_inputs_fail_before_any_web_call(direct_vm, direct_deploy, direc
     contract = direct_deploy(str(CONTRACT_PATH))
     direct_vm.sender = direct_alice
     with direct_vm.expect_revert("Assessment id must be"):
-        contract.assess("a", "https://deliveryos-tau-wheat.vercel.app/")
+        contract.assess("a", "https://reviewer-roadtest.vercel.app/")
     for url in (
-        "http://deliveryos-tau-wheat.vercel.app/",
+        "http://reviewer-roadtest.vercel.app/",
         "https://localhost/",
         "https://127.0.0.1/",
-        "https://deliveryos-tau-wheat.vercel.app/path",
+        "https://reviewer-roadtest.vercel.app/path",
         "https://example.com@evil.test/",
         "https://example.com:443/",
     ):
