@@ -64,11 +64,11 @@ try {
   await page.locator("#review-online-status").getByText(/EIP-1193 wallet/).waitFor();
   await page.route("**/api/receipt", (route) => route.fulfill({ json: {
     result: "PASS", lifecycle: "FINALIZED", execution_status: "0x1",
-    actual_contract: "0x3AC40f631e8fAFcF6A7D2cc3179ed7320ff7744A",
+    actual_contract: "0x698551A62D7547884963Fcc8Df7208E0a04aD576",
     explorer_url: "https://explorer-studio.genlayer.com/tx/" + "b".repeat(64)
   } }));
   await page.getByLabel("Transaction hash").fill("0x" + "b".repeat(64));
-  await page.getByLabel("Expected contract").fill("0x3AC40f631e8fAFcF6A7D2cc3179ed7320ff7744A");
+  await page.getByLabel("Expected contract").fill("0x698551A62D7547884963Fcc8Df7208E0a04aD576");
   await page.getByRole("button", { name: /Verify receipt/ }).click();
   await page.locator("#receipt-result").getByText(/PASS · FINALIZED/).waitFor();
   await page.screenshot({ path: "test-results/roadtest-desktop.png", fullPage: true, animations: "disabled" });

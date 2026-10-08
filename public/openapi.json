@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Reviewer Roadtest API",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Public hosted first-visit checks, read-only GenLayer receipt verification, and scoped evidence records. Hosted runs publish report JSON and screenshots; do not submit secrets. A signed wallet transaction is required only for a new GenLayer consensus review."
   },
   "servers": [{ "url": "https://reviewer-roadtest.vercel.app" }],
@@ -43,7 +43,7 @@
           "scope": { "type": "string" },
           "browser_checks": { "type": "array", "minItems": 1, "maxItems": 5, "items": { "type": "object" } },
           "http_checks": { "type": "array", "maxItems": 5, "items": { "type": "object" } },
-          "claims": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+          "claims": { "type": "array", "minItems": 1, "maxItems": 10, "items": { "type": "object" } },
           "not_tested": { "type": "array", "minItems": 1, "items": { "type": "string" } }
         }
       }

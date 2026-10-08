@@ -45,7 +45,7 @@ The site's own clarity assessment returned `CLEAR` in this [finalized Studionet 
 
 The [ReportReview intelligent contract](contracts/ReportReview.py) accepts the URL and SHA-256 of a hosted Roadtest report. Validators re-fetch the exact report bytes, its public HTTP assertions and screenshot bytes, recompute claim statuses, and judge whether claim wording exceeds the evidence. Browser clicks remain **runner testimony** and cannot be independently replayed by validators. An `SCOPED` verdict is not a security certificate or proof of the browser journey.
 
-Studionet contract: `0x3AC40f631e8fAFcF6A7D2cc3179ed7320ff7744A`. Call `review(unique_id, report_url, lowercase_sha256)` with an authorized wallet, wait for `FINALIZED` and successful execution, then read `get_review(unique_id)`. A Vercel-hosted self-check was reviewed as `SCOPED` in [this finalized transaction](https://explorer-studio.genlayer.com/tx/0xf3e3c5161dab1fcec653a72a8b40fba326e4e08d9f7b50cf4eb64503ab1d2980); [review metadata](public/reviews/roadtest.json) includes the report hash and evidence limits.
+Studionet contract: `0x698551A62D7547884963Fcc8Df7208E0a04aD576`. Call `review(unique_id, report_url, lowercase_sha256)` with an authorized wallet, wait for `FINALIZED` and successful execution, then read `get_review(unique_id)`. A Vercel-hosted self-check was reviewed as `SCOPED` in [this finalized transaction](https://explorer-studio.genlayer.com/tx/0xb331b188d4b9167515294b23ad1346b2647f2bd074a2e4eb68ead20e30562f0d); [review metadata](public/reviews/roadtest.json) includes the report hash and evidence limits. The previous reviewer address is historical; new writes should use the address above.
 
 ## Boundaries
 
@@ -53,5 +53,6 @@ Studionet contract: `0x3AC40f631e8fAFcF6A7D2cc3179ed7320ff7744A`. Call `review(u
 - Wallet-transaction checks require a user-supplied hash and expected contract. Roadtest does not initiate transactions in the target project or know whether the target's UI behaved correctly.
 - The on-chain review checks report integrity and public evidence. It cannot prove browser clicks, private evidence, or broad software security.
 - Anonymous hosted runs consume limited Vercel Sandbox and Blob quota. On Hobby, the service may stop accepting runs when free quotas are exhausted; never put sensitive data into a public plan.
+- The hosted API accepts at most ten claims and rejects reports over 100 KB so its output fits the on-chain reviewer's input bound. An unpublished log-only WAF rule does not enforce a rate limit; abuse of the public runner remains an operational risk until a reviewed limit is published.
 
 The site uses Vercel Functions, Sandbox and Blob. GitHub Actions runs the self-check on push and daily, commits the dated report even when it fails, and marks failing evidence red in CI. MIT licensed.

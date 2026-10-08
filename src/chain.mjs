@@ -2,7 +2,7 @@ import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { TransactionStatus, ExecutionResult } from "genlayer-js/types";
 
-export const REPORT_REVIEW_CONTRACT = "0x3AC40f631e8fAFcF6A7D2cc3179ed7320ff7744A";
+export const REPORT_REVIEW_CONTRACT = "0x698551A62D7547884963Fcc8Df7208E0a04aD576";
 
 export async function requestReportReview({ reviewId, reportUrl, reportHash, onTransaction }) {
   const provider = window.ethereum ?? window.okxwallet;

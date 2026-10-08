@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { overallStatus, summarizeClaims } from "../lib/checks.mjs";
+import { REPORT_REVIEW_CONTRACT } from "../src/chain.mjs";
 
 const root = new URL("../", import.meta.url);
 const config = JSON.parse(await readFile(new URL("configs/roadtest.json", root), "utf8"));
@@ -31,4 +32,19 @@ test("on-chain record, when published, identifies source bytes and successful re
   assert.ok(["AGREE", "MAJORITY_AGREE"].includes(assessment.consensus_result));
   assert.ok(assessment.explorer_url.endsWith(assessment.transaction_hash));
   assert.match(assessment.source_url, /\/blob\/[0-9a-f]{40}\/contracts\/OnboardingRoadtest\.py$/);
+});
+
+test("full-report review record pins its deployed source and exact report identity", async () => {
+  const review = JSON.parse(await readFile(new URL("public/reviews/roadtest.json", root), "utf8"));
+  const source = await readFile(new URL("contracts/ReportReview.py", root));
+  assert.equal(review.contract_address, REPORT_REVIEW_CONTRACT);
+  assert.equal(createHash("sha256").update(source).digest("hex"), review.source_sha256);
+  assert.match(review.source_url, /\/blob\/[0-9a-f]{40}\/contracts\/ReportReview\.py$/);
+  assert.equal(review.transaction_status, "FINALIZED");
+  assert.equal(review.execution_result, "SUCCESS");
+  assert.ok(["AGREE", "MAJORITY_AGREE"].includes(review.consensus_result));
+  assert.equal(review.verdict, "SCOPED");
+  assert.equal(review.browser_proof, "RUNNER_ONLY");
+  assert.match(review.report_sha256, /^[0-9a-f]{64}$/);
+  assert.ok(review.explorer_url.endsWith(review.transaction_hash));
 });
