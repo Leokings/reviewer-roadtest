@@ -14,7 +14,7 @@ try {
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(base, { waitUntil: "networkidle", timeout: 45000 });
   await page.getByRole("heading", { name: "This site, first hand.", exact: true }).waitFor();
-  assert.match(await page.locator("#agents").innerText(), /wallet signs that on-chain write/);
+  assert.match(await page.locator("#agents").innerText(), /signed by its requester/);
   await page.locator("#report-content").waitFor({ state: "visible", timeout: 30000 });
   await page.locator("#consensus-card").waitFor({ state: "visible", timeout: 30000 });
   assert.equal(await page.locator("#consensus-verdict").innerText(), "CLEAR");
@@ -49,6 +49,28 @@ try {
   const longNameDownload = page.waitForEvent("download");
   await page.getByRole("button", { name: /Download my plan JSON/ }).click();
   assert.equal(validateConfig(JSON.parse(await readFile(await (await longNameDownload).path(), "utf8"))).id.length, 47);
+  await page.getByLabel("Project name").fill("Sample Review");
+  await page.getByLabel("Public site URL").fill("https://example.org/");
+  await page.getByLabel("I understand the run, report, and screenshot will be public.").check();
+  await page.route("**/api/run", (route) => route.fulfill({ json: {
+    report_url: "https://s2k2fceowpooyxy0.public.blob.vercel-storage.com/reports/test.json",
+    report_sha256: "a".repeat(64),
+    report: { ...report, project: { ...report.project, name: "Sample Review" } }
+  } }));
+  await page.getByRole("button", { name: /Run online/ }).click();
+  await page.locator("#online-result").waitFor({ state: "visible" });
+  assert.match(await page.locator("#online-result-title").innerText(), /Sample Review/);
+  await page.getByRole("button", { name: /Request on-chain review/ }).click();
+  await page.locator("#review-online-status").getByText(/EIP-1193 wallet/).waitFor();
+  await page.route("**/api/receipt", (route) => route.fulfill({ json: {
+    result: "PASS", lifecycle: "FINALIZED", execution_status: "0x1",
+    actual_contract: "0x3AC40f631e8fAFcF6A7D2cc3179ed7320ff7744A",
+    explorer_url: "https://explorer-studio.genlayer.com/tx/" + "b".repeat(64)
+  } }));
+  await page.getByLabel("Transaction hash").fill("0x" + "b".repeat(64));
+  await page.getByLabel("Expected contract").fill("0x3AC40f631e8fAFcF6A7D2cc3179ed7320ff7744A");
+  await page.getByRole("button", { name: /Verify receipt/ }).click();
+  await page.locator("#receipt-result").getByText(/PASS · FINALIZED/).waitFor();
   await page.screenshot({ path: "test-results/roadtest-desktop.png", fullPage: true, animations: "disabled" });
   assert.deepEqual(errors, []);
 

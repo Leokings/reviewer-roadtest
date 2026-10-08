@@ -1,0 +1,18 @@
+{
+  "protocol": "ROADTEST_REPORT_REVIEW_V1",
+  "network": "studionet",
+  "contract_address": "0x3AC40f631e8fAFcF6A7D2cc3179ed7320ff7744A",
+  "review_id": "roadtest_preview_20261008",
+  "transaction_hash": "0xf3e3c5161dab1fcec653a72a8b40fba326e4e08d9f7b50cf4eb64503ab1d2980",
+  "transaction_status": "FINALIZED",
+  "execution_result": "SUCCESS",
+  "consensus_result": "MAJORITY_AGREE",
+  "report_url": "https://s2k2fceowpooyxy0.public.blob.vercel-storage.com/reports/roadtest-20261008t221924582z-825cddf2340b404c.json",
+  "report_sha256": "9e1876d4be829d02a8356db51720850b559de23b27ab4f39a783298b73ac85b2",
+  "verdict": "SCOPED",
+  "http_rechecked": 3,
+  "browser_checks": 4,
+  "browser_proof": "RUNNER_ONLY",
+  "explorer_url": "https://explorer-studio.genlayer.com/tx/0xf3e3c5161dab1fcec653a72a8b40fba326e4e08d9f7b50cf4eb64503ab1d2980",
+  "source_url": "https://github.com/Leokings/reviewer-roadtest/blob/main/contracts/ReportReview.py"
+}

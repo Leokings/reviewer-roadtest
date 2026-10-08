@@ -2,37 +2,50 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Reviewer Roadtest API",
-    "version": "0.2.2",
-    "description": "Read-only public reports and a separate GenLayer assessment. No API key is needed. The website does not execute arbitrary targets; use the open-source runner for that."
+    "version": "0.3.0",
+    "description": "Public hosted first-visit checks, read-only GenLayer receipt verification, and scoped evidence records. Hosted runs publish report JSON and screenshots; do not submit secrets. A signed wallet transaction is required only for a new GenLayer consensus review."
   },
   "servers": [{ "url": "https://reviewer-roadtest.vercel.app" }],
   "paths": {
-    "/reports/roadtest.json": {
-      "get": {
-        "summary": "Read the latest scoped self-check report",
+    "/api/run": {
+      "post": {
+        "summary": "Run a scoped plan in an isolated hosted browser",
+        "description": "Only public HTTPS origins, accessible-role browser checks and same-origin public HTTP assertions are accepted. At most five browser and five HTTP checks. The report and screenshot are public.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Plan" } } } },
         "responses": {
-          "200": {
-            "description": "Dated CI report with claims, checks, evidence boundaries, and untested paths",
-            "content": { "application/json": { "schema": { "type": "object", "required": ["protocol", "report_id", "project", "checks", "claims", "overall", "not_tested"] } } }
-          }
+          "200": { "description": "Public report URL, SHA-256 and report", "content": { "application/json": { "schema": { "type": "object", "required": ["report_url", "report_sha256", "report"], "properties": { "report_url": { "type": "string", "format": "uri" }, "report_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }, "report": { "type": "object" } } } } } },
+          "400": { "description": "Invalid or non-public plan" },
+          "503": { "description": "Hosted runner unavailable or quota exhausted" }
         }
       }
     },
-    "/assessments/roadtest.json": {
-      "get": {
-        "summary": "Read a separate GenLayer first-visit clarity assessment",
-        "responses": {
-          "200": {
-            "description": "Public assessment record; verify it by contract address and transaction hash",
-            "content": { "application/json": { "schema": { "type": "object", "required": ["protocol", "contract_address", "assessment_id", "verdict", "transaction_hash", "scope"] } } }
-          }
-        }
+    "/api/receipt": {
+      "post": {
+        "summary": "Independently verify a GenLayer transaction receipt",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["network", "tx_hash", "expected_contract"], "properties": { "network": { "enum": ["studionet", "bradbury"] }, "tx_hash": { "type": "string", "pattern": "^0x[0-9a-fA-F]{64}$" }, "expected_contract": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$" } } } } } },
+        "responses": { "200": { "description": "PASS only when destination, finality and execution all match", "content": { "application/json": { "schema": { "type": "object", "required": ["protocol", "result", "tx_hash", "scope"] } } } }, "400": { "description": "Invalid request" } }
       }
     },
-    "/roadtest.template.json": {
-      "get": {
-        "summary": "Download a starter configuration for the open-source runner",
-        "responses": { "200": { "description": "Editable JSON plan for another public site" } }
+    "/reports/roadtest.json": { "get": { "summary": "Read the latest scoped self-check report", "responses": { "200": { "description": "Dated CI report with claims, checks, evidence boundaries and untested paths" } } } },
+    "/assessments/roadtest.json": { "get": { "summary": "Read a separate first-visit clarity assessment", "responses": { "200": { "description": "On-chain assessment record with transaction and contract identity" } } } },
+    "/reviews/roadtest.json": { "get": { "summary": "Read a full-report GenLayer consensus review example", "responses": { "200": { "description": "On-chain review record with report hash, receipt and evidence limits" } } } },
+    "/roadtest.template.json": { "get": { "summary": "Download a starter plan", "responses": { "200": { "description": "Editable JSON plan" } } } }
+  },
+  "components": {
+    "schemas": {
+      "Plan": {
+        "type": "object",
+        "required": ["id", "name", "site", "scope", "browser_checks", "http_checks", "claims", "not_tested"],
+        "properties": {
+          "id": { "type": "string", "description": "Lowercase project identifier" },
+          "name": { "type": "string" },
+          "site": { "type": "string", "format": "uri", "description": "Public HTTPS origin ending in /" },
+          "scope": { "type": "string" },
+          "browser_checks": { "type": "array", "minItems": 1, "maxItems": 5, "items": { "type": "object" } },
+          "http_checks": { "type": "array", "maxItems": 5, "items": { "type": "object" } },
+          "claims": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+          "not_tested": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+        }
       }
     }
   }

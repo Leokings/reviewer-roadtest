@@ -2,6 +2,7 @@ const REPORT_URL = "/reports/roadtest.json";
 const $ = (selector) => document.querySelector(selector);
 let publishedReport;
 let activeFilter = "all";
+let latestPublishedRun;
 
 function text(el, value) {
   el.textContent = String(value ?? "");
@@ -140,11 +141,8 @@ $("#copy-report").addEventListener("click", async () => {
   setTimeout(() => text(button, "Copy report link"), 3000);
 });
 
-$("#plan-form").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const output = $("#plan-status");
-  const values = Object.fromEntries(new FormData(event.currentTarget));
-  try {
+function planFromForm(form) {
+  const values = Object.fromEntries(new FormData(form));
     const url = new URL(values.site);
     const host = url.hostname.toLowerCase();
     if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash || url.pathname !== "/" || url.port ||
@@ -153,7 +151,7 @@ $("#plan-form").addEventListener("submit", (event) => {
         /^\d+(?:\.\d+){3}$/.test(host)) throw new Error("Use a public HTTPS homepage URL.");
     let id = values.name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48).replace(/-$/, "");
     if (id.length < 2) id = "my-project";
-    const config = {
+    return {
       id, name: values.name.trim(), site: url.href,
       scope: "A clean browser can identify the product and open one public example. Only the named path is tested.",
       browser_checks: [
@@ -165,6 +163,14 @@ $("#plan-form").addEventListener("submit", (event) => {
       claims: [{ id: "first-visit", text: "A new visitor can find the product and a public example.", checks: ["first-heading", "example-path", "browser-errors"] }],
       not_tested: ["Wallet writes", "Private evidence", "Security outside these checks"]
     };
+}
+
+$("#plan-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const output = $("#plan-status");
+  try {
+    const config = planFromForm(event.currentTarget);
+    const id = config.id;
     const blob = new Blob([JSON.stringify(config, null, 2) + "\n"], { type: "application/json" });
     const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -176,6 +182,86 @@ $("#plan-form").addEventListener("submit", (event) => {
   } catch (error) {
     text(output, error.message);
   }
+});
+
+$("#run-online").addEventListener("click", async () => {
+  const form = $("#plan-form");
+  const output = $("#plan-status");
+  const button = $("#run-online");
+  if (!form.reportValidity()) return;
+  if (!$("#publish-consent").checked) { text(output, "Confirm that this public run may publish a report and screenshot."); return; }
+  try {
+    const config = planFromForm(form);
+    button.disabled = true;
+    text(output, "Running a clean browser now. This can take about a minute…");
+    const response = await fetch("/api/run", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(config) });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || `Run failed (HTTP ${response.status})`);
+    const { report } = payload;
+    text($("#online-result-title"), `${report.project.name}: ${report.overall}`);
+    text($("#online-result-summary"), `${report.checks.filter((check) => check.result === "PASS").length} of ${report.checks.length} checks passed. Read the limits before relying on this result.`);
+    const reportUrl = safeEvidenceUrl(payload.report_url);
+    if (!reportUrl) throw new Error("Published report URL is invalid");
+    if (!/^[0-9a-f]{64}$/.test(payload.report_sha256 ?? "")) throw new Error("Published report hash is invalid");
+    latestPublishedRun = { reportUrl, reportHash: payload.report_sha256 };
+    $("#online-report-link").href = reportUrl;
+    const screenshotUrl = safeEvidenceUrl(report.screenshot);
+    $("#online-screenshot-link").hidden = !screenshotUrl;
+    if (screenshotUrl) $("#online-screenshot-link").href = screenshotUrl;
+    text($("#online-report-hash"), `Report SHA-256: ${payload.report_sha256}`);
+    $("#online-check-list").replaceChildren(...report.checks.map((check) => text(document.createElement("li"), `${check.result} · ${check.title}`)));
+    $("#online-result").hidden = false;
+    text(output, "Run complete. The report is public and downloadable.");
+  } catch (error) { text(output, error.message); }
+  finally { button.disabled = false; }
+});
+
+$("#review-online").addEventListener("click", async () => {
+  const output = $("#review-online-status");
+  const button = $("#review-online");
+  if (!latestPublishedRun) { text(output, "Run a public Roadtest first."); return; }
+  try {
+    button.disabled = true;
+    text(output, "Waiting for your wallet to sign on Studionet…");
+    const { requestReportReview } = await import("/chain.js");
+    const random = Array.from(crypto.getRandomValues(new Uint8Array(5)), (byte) => byte.toString(16).padStart(2, "0")).join("");
+    const reviewId = `review_${Date.now().toString(36)}_${random}`;
+    const result = await requestReportReview({
+      reviewId, reportUrl: latestPublishedRun.reportUrl, reportHash: latestPublishedRun.reportHash,
+      onTransaction: (hash) => {
+        const link = $("#review-online-tx");
+        link.href = `https://explorer-studio.genlayer.com/tx/${hash}`;
+        link.hidden = false;
+        text(output, "Transaction sent. Waiting for finality and stored review…");
+      }
+    });
+    text(output, `GenLayer verdict: ${result.review.verdict}. ${result.review.http_rechecked} public responses re-checked; browser clicks remain runner-only evidence. Review ID: ${reviewId}`);
+  } catch (error) { text(output, error.message ?? "On-chain review did not complete."); }
+  finally { button.disabled = false; }
+});
+
+$("#receipt-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const output = $("#receipt-result");
+  const button = form.querySelector("button");
+  try {
+    button.disabled = true;
+    text(output, "Checking network receipt…");
+    const response = await fetch("/api/receipt", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(Object.fromEntries(new FormData(form))) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || `Receipt check failed (HTTP ${response.status})`);
+    output.replaceChildren();
+    output.dataset.status = result.result;
+    output.append(text(document.createElement("strong"), result.result + " · " + result.lifecycle));
+    output.append(text(document.createElement("span"), `Execution ${result.execution_status ?? "unknown"}; contract ${short(result.actual_contract ?? "none", 12, 8)}.`));
+    const link = text(document.createElement("a"), "Open transaction ↗");
+    link.href = result.explorer_url;
+    link.target = "_blank";
+    link.rel = "noreferrer noopener";
+    output.append(link);
+  } catch (error) { text(output, error.message); output.dataset.status = "INCONCLUSIVE"; }
+  finally { button.disabled = false; }
 });
 
 try {

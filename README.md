@@ -1,14 +1,16 @@
 # Reviewer Roadtest
 
-An independent, open-source tool for testing a public project's first-time-user path and publishing a narrowly scoped evidence report. The [website](https://reviewer-roadtest.vercel.app/) lets a person create a test plan and read a dated example report. Agents can read the same JSON and run the tester from this repository. No wallet or API key is needed to read a report.
+An independent, open-source tool for testing a public project's first-time-user path and publishing a narrowly scoped evidence report. The [website](https://reviewer-roadtest.vercel.app/) runs public-site plans in an isolated hosted browser and publishes report JSON and a screenshot. Agents can use the same API or run the repository's tester in their own CI. No wallet or API key is needed to run a public-site check or read a report.
 
 The published example checks Reviewer Roadtest's own site. It is a self-check, **not** a certificate for other projects or a full security audit.
 
 ## First-time use
 
 1. Open the website and choose **Create a Roadtest plan**.
-2. Enter a public HTTPS homepage, its exact accessible headline, the public-example link text, and the heading expected after clicking that link. Download the JSON.
-3. Run that plan from this repository, or have an agent run it in CI. Review the generated report and screenshot before publishing them.
+2. Enter a public HTTPS homepage, its exact accessible headline, the public-example link text, and the heading expected after clicking that link.
+3. Choose **Run online**, acknowledge that the report and screenshot are public, and open the resulting report. Or download the plan and run it in your own CI.
+4. Optionally paste a GenLayer transaction hash and expected contract into **Verify receipt**. A receipt PASS confirms destination, finality and successful execution, not the entire app journey.
+5. Optionally request an on-chain review of a hosted report with a Studionet wallet. This is a signed write; reading a report needs no wallet.
 
 ## Run your own Roadtest
 
@@ -23,13 +25,13 @@ npm run roadtest -- path/to/my-project.json
 
 The plan is also available as [a starter file](public/roadtest.template.json). The runner supports browser checks for visible headings, links, and buttons; one click followed by an expected visible result; uncaught page errors; and same-origin JSON/text HTTP assertions. Each check must support an explicit claim. The report includes exact response SHA-256 values and `not_tested` limitations. A failed or inconclusive assertion makes the command fail, so it can gate CI.
 
-Do not put secrets in a plan or run plans from untrusted people in privileged CI. The runner deliberately does not accept arbitrary JavaScript, credentials, private evidence, or hosted anonymous jobs.
+Do not put secrets in a plan or run plans from untrusted people in privileged CI. The hosted runner accepts only public HTTPS origins, exact browser roles/names and same-origin public response assertions. It does not accept arbitrary JavaScript, credentials, or private evidence. Hosted reports and screenshots are public.
 
 ## For agents
 
-Fetch [the report JSON](https://reviewer-roadtest.vercel.app/reports/roadtest.json), [OpenAPI](https://reviewer-roadtest.vercel.app/openapi.json), and [the agent guide](https://reviewer-roadtest.vercel.app/llms.txt). Inspect `overall`, every `claims[].status`, the supporting `checks`, `evidence_model`, and `not_tested`. A `PASS` applies only to the declared checks, not to the whole product.
+Fetch [the report JSON](https://reviewer-roadtest.vercel.app/reports/roadtest.json), [OpenAPI](https://reviewer-roadtest.vercel.app/openapi.json), and [the agent guide](https://reviewer-roadtest.vercel.app/llms.txt). POST a valid plan to `/api/run` for a hosted run and receive a public report URL and exact SHA-256. POST a hash, expected contract and network to `/api/receipt` to independently check a transaction. Inspect `overall`, every `claims[].status`, the supporting `checks`, `evidence_model`, and `not_tested`. A `PASS` applies only to the declared checks, not to the whole product.
 
-An agent can edit a plan and run `npm run roadtest -- path/to/plan.json`. The public website is a plan builder and report viewer; it is **not** an on-demand execution API.
+An agent can also edit a plan and run `npm run roadtest -- path/to/plan.json`. On-chain reviews must be requested by an authorized signer through the site or GenLayer SDK; the API never holds a signing key.
 
 ## GenLayer boundary
 
@@ -39,10 +41,17 @@ Studionet contract: `0x565096782FE263BEFaDC65a0A5796dd2544116bB`. With your own 
 
 The site's own clarity assessment returned `CLEAR` in this [finalized Studionet transaction](https://explorer-studio.genlayer.com/tx/0x845a158ae90faff007f8b62dad1d4827bf4614062e33363a361ad93ab4a51d52). It is also published as [assessment JSON](https://reviewer-roadtest.vercel.app/assessments/roadtest.json).
 
-## What remains outside this release
+## Full-report consensus review
 
-- A hosted queue that executes arbitrary third-party URLs, with authentication, abuse controls, and safe browser isolation.
-- Signed-wallet, transaction-specific, and multi-party workflows. The generic runner does not yet validate chain receipts.
-- Independent on-chain verification of an entire browser/HTTP report; the current GenLayer verdict covers first-visit explanatory clarity only.
+The [ReportReview intelligent contract](contracts/ReportReview.py) accepts the URL and SHA-256 of a hosted Roadtest report. Validators re-fetch the exact report bytes, its public HTTP assertions and screenshot bytes, recompute claim statuses, and judge whether claim wording exceeds the evidence. Browser clicks remain **runner testimony** and cannot be independently replayed by validators. An `SCOPED` verdict is not a security certificate or proof of the browser journey.
 
-The site is static on Vercel. GitHub Actions runs the self-check on push and daily, commits the dated report even when it fails, and marks failing evidence red in CI. MIT licensed.
+Studionet contract: `0x3AC40f631e8fAFcF6A7D2cc3179ed7320ff7744A`. Call `review(unique_id, report_url, lowercase_sha256)` with an authorized wallet, wait for `FINALIZED` and successful execution, then read `get_review(unique_id)`. A Vercel-hosted self-check was reviewed as `SCOPED` in [this finalized transaction](https://explorer-studio.genlayer.com/tx/0xf3e3c5161dab1fcec653a72a8b40fba326e4e08d9f7b50cf4eb64503ab1d2980); [review metadata](public/reviews/roadtest.json) includes the report hash and evidence limits.
+
+## Boundaries
+
+- A hosted run is synchronous and limited to five browser checks, five public reads, and two minutes. It is not an account-based queue or a full web crawler.
+- Wallet-transaction checks require a user-supplied hash and expected contract. Roadtest does not initiate transactions in the target project or know whether the target's UI behaved correctly.
+- The on-chain review checks report integrity and public evidence. It cannot prove browser clicks, private evidence, or broad software security.
+- Anonymous hosted runs consume limited Vercel Sandbox and Blob quota. On Hobby, the service may stop accepting runs when free quotas are exhausted; never put sensitive data into a public plan.
+
+The site uses Vercel Functions, Sandbox and Blob. GitHub Actions runs the self-check on push and daily, commits the dated report even when it fails, and marks failing evidence red in CI. MIT licensed.

@@ -74,6 +74,7 @@ const report = {
   completed_at: new Date().toISOString(),
   project: { id: config.id, name: config.name, site: config.site, ...(config.source ? { source: config.source } : {}) },
   scope: config.scope,
+  plan: config,
   evidence_model: {
     http: "The runner fetched same-origin public responses and recorded byte hashes. The target operates these endpoints; their contents are not independent proof.",
     browser: "The screenshot and clicks, when present, are CI-runner observations, not trustless proof of human use.",

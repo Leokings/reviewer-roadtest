@@ -1,22 +1,25 @@
 # Reviewer Roadtest
 
 Reviewer Roadtest is an independent, open-source first-visit and public-evidence tester.
-Its site shows a self-check example. It is not a security certificate.
+Its site can run a plan against a public HTTPS site. It is not a security certificate.
 
 Read the dated report with no API key: /reports/roadtest.json
 Read the separate GenLayer clarity assessment: /assessments/roadtest.json
+Read a full-report GenLayer review example: /reviews/roadtest.json
 Read the API schema: /openapi.json
 Download a plan starter: /roadtest.template.json
 Source and CI runner: https://github.com/Leokings/reviewer-roadtest
 
-For a new target, make a plan on the website or edit the starter JSON, then run
-`npm run roadtest -- path/to/plan.json` from the repository. The runner supports
+For a new target, make a plan on the website or edit the starter JSON, then POST
+it to /api/run or use `npm run roadtest -- path/to/plan.json` from the repository. The runner supports
 exact accessible browser roles/names and same-origin JSON/text assertions.
-The hosted website does not run arbitrary targets on demand.
+Hosted runs are limited to public origins and publish their reports and screenshots.
+POST {network,tx_hash,expected_contract} to /api/receipt for read-only GenLayer
+transaction verification. No private key is accepted by these APIs.
 
 Interpret PASS only for the named claims and check_ids in each report. Read
 not_tested and evidence_model before relying on a result. Browser screenshots
-are runner observations, not on-chain proof. The GenLayer contract separately
-assesses a public landing page's first-visit explanation; it does not verify
-the CI browser or HTTP checks. A wallet is needed only to request a new on-chain
-assessment, not to read public reports.
+are runner observations, not on-chain proof. The ReportReview contract checks
+the report hash, public HTTP assertions, screenshot bytes, and claim wording,
+but cannot replay browser clicks. A wallet is needed only to request a new
+on-chain assessment, not to read public reports or verify a transaction hash.
