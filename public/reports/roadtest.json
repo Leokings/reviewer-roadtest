@@ -1,8 +1,8 @@
 {
   "protocol": "ROADTEST_REPORT_V1",
-  "report_id": "roadtest-20261008t203955310z",
-  "created_at": "2026-10-08T20:39:55.310Z",
-  "completed_at": "2026-10-08T20:39:58.619Z",
+  "report_id": "roadtest-20261008t222237013z",
+  "created_at": "2026-10-08T22:22:37.013Z",
+  "completed_at": "2026-10-08T22:22:38.674Z",
   "project": {
     "id": "roadtest",
     "name": "Reviewer Roadtest",
@@ -10,6 +10,116 @@
     "source": "https://github.com/Leokings/reviewer-roadtest"
   },
   "scope": "A fresh browser can find this site's headline and public example. Three public machine-readable resources remain available. This is a self-check, not a security audit or proof that other targets pass.",
+  "plan": {
+    "id": "roadtest",
+    "name": "Reviewer Roadtest",
+    "site": "https://reviewer-roadtest.vercel.app/",
+    "source": "https://github.com/Leokings/reviewer-roadtest",
+    "scope": "A fresh browser can find this site's headline and public example. Three public machine-readable resources remain available. This is a self-check, not a security audit or proof that other targets pass.",
+    "browser_checks": [
+      {
+        "id": "first-visit-heading",
+        "title": "The first-visit purpose is visible",
+        "type": "visible",
+        "role": "heading",
+        "name": "A better way to say “it works.”"
+      },
+      {
+        "id": "sample-path",
+        "title": "A visitor can open the sample without signing in",
+        "type": "click",
+        "role": "link",
+        "name": "See a sample roadtest",
+        "after": {
+          "role": "heading",
+          "name": "This site, first hand."
+        }
+      },
+      {
+        "id": "report-loaded",
+        "title": "The public sample report finishes loading",
+        "type": "visible",
+        "role": "heading",
+        "name": "Reviewer Roadtest"
+      },
+      {
+        "id": "browser-javascript",
+        "title": "No uncaught page error on the tested path",
+        "type": "no-page-errors"
+      }
+    ],
+    "http_checks": [
+      {
+        "id": "openapi",
+        "title": "The public API description is reachable",
+        "path": "/openapi.json",
+        "format": "json",
+        "assertions": [
+          {
+            "field": "openapi",
+            "equals": "3.1.0"
+          },
+          {
+            "field": "info.title",
+            "equals": "Reviewer Roadtest API"
+          }
+        ]
+      },
+      {
+        "id": "agent-guide",
+        "title": "The agent guide is public",
+        "path": "/llms.txt",
+        "format": "text",
+        "assertions": [
+          {
+            "includes": "Reviewer Roadtest"
+          },
+          {
+            "includes": "no API key"
+          }
+        ]
+      },
+      {
+        "id": "starter-config",
+        "title": "A reusable starter configuration is available",
+        "path": "/roadtest.template.json",
+        "format": "json",
+        "assertions": [
+          {
+            "field": "id",
+            "equals": "my-project"
+          }
+        ]
+      }
+    ],
+    "claims": [
+      {
+        "id": "fresh-visitor",
+        "text": "A first-time visitor can see the main headline and load the public example without a wallet.",
+        "checks": [
+          "first-visit-heading",
+          "sample-path",
+          "report-loaded",
+          "browser-javascript"
+        ]
+      },
+      {
+        "id": "agent-resources",
+        "text": "An agent can read the public API description, guidance, and a starter configuration without a key.",
+        "checks": [
+          "openapi",
+          "agent-guide",
+          "starter-config"
+        ]
+      }
+    ],
+    "not_tested": [
+      "Other projects or arbitrary user-submitted URLs",
+      "Signed wallet transactions or financial flows",
+      "Every browser, wallet, accessibility setting, or device",
+      "Security properties beyond these named checks"
+    ]
+  },
   "evidence_model": {
     "http": "The runner fetched same-origin public responses and recorded byte hashes. The target operates these endpoints; their contents are not independent proof.",
     "browser": "The screenshot and clicks, when present, are CI-runner observations, not trustless proof of human use.",
@@ -23,7 +133,7 @@
       "result": "PASS",
       "observation": "openapi=\"3.1.0\"; expected=\"3.1.0\" | info.title=\"Reviewer Roadtest API\"; expected=\"Reviewer Roadtest API\"",
       "evidence_url": "https://reviewer-roadtest.vercel.app/openapi.json",
-      "response_sha256": "e43556f6eb6127cc177e6aa205cae913c3cab1b760ec93d69d09e092145aef32"
+      "response_sha256": "506fe9e7467480e2a9c9735da4f890b776bb25c7de65e7f76d956c24f2f3a332"
     },
     {
       "id": "agent-guide",
@@ -32,7 +142,7 @@
       "result": "PASS",
       "observation": "Contains \"Reviewer Roadtest\": true | Contains \"no API key\": true",
       "evidence_url": "https://reviewer-roadtest.vercel.app/llms.txt",
-      "response_sha256": "108eb5e10fe227bef585cd6708823c55456cc67703489e5735e33bf517cd40b0"
+      "response_sha256": "92758d5edfbc90ea2d830f60d0d2b16d0b84122f6bc325d97a42723cee9a538b"
     },
     {
       "id": "starter-config",
