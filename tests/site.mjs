@@ -38,7 +38,7 @@ try {
   const download = await downloadPromise;
   assert.equal(download.suggestedFilename(), "sample-review.json");
   const generated = JSON.parse(await readFile(await download.path(), "utf8"));
-  assert.equal(validateConfig(generated), generated);
+  assert.deepEqual(validateConfig(generated), generated);
   assert.equal(generated.site, "https://example.org/");
   assert.equal(generated.browser_checks[1].after.name, "Example result");
   await page.getByLabel("Public site URL").fill("http://localhost/");

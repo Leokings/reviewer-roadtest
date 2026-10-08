@@ -1,17 +1,19 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { evaluateAssertions, fetchDocument, overallStatus, publicOrigin, runHttpChecks, sha256, summarizeClaims, validateConfig } from "../lib/checks.mjs";
+import { assertReportMatchesPlan, evaluateAssertions, fetchDocument, overallStatus, publicOrigin, runHttpChecks, sha256, summarizeClaims, validateConfig } from "../lib/checks.mjs";
 
 const config = JSON.parse(await readFile(new URL("../configs/roadtest.json", import.meta.url), "utf8"));
 
 test("a reusable plan validates checks and claim coverage", () => {
-  assert.equal(validateConfig(config), config);
+  assert.deepEqual(validateConfig(config), config);
+  assert.equal(validateConfig({ ...config, site: "https://reviewer-roadtest.vercel.app" }).site, config.site);
   assert.equal(publicOrigin(config.site), "https://reviewer-roadtest.vercel.app");
   assert.throws(() => validateConfig({ ...config, site: "http://localhost/" }), /HTTPS/);
   assert.throws(() => validateConfig({ ...config, site: "https://127.0.0.1/" }), /HTTPS/);
   assert.throws(() => validateConfig({ ...config, http_checks: [{ ...config.http_checks[0], path: "//private/" }] }), /same-origin/);
   assert.throws(() => validateConfig({ ...config, claims: [{ id: "bad", text: "Bad claim", checks: ["unknown"] }] }), /unknown check/);
+  assert.throws(() => validateConfig({ ...config, claims: Array.from({ length: 11 }, (_, i) => ({ id: `claim-${i}`, text: "A narrow claim", checks: [config.browser_checks[0].id] })) }), /1-10/);
 });
 
 test("response hashes use exact bytes", () => {
@@ -57,4 +59,20 @@ test("a definite failure is not hidden by a missing check", () => {
 test("text and JSON comparisons are explicit", () => {
   assert.equal(evaluateAssertions({ format: "text", assertions: [{ includes: "hello" }] }, "hello world").ok, true);
   assert.equal(evaluateAssertions({ format: "json", assertions: [{ field: "nested.ok", equals: true }] }, '{"nested":{"ok":false}}').ok, false);
+});
+
+test("untrusted sandbox output cannot replace check results or plan identity", () => {
+  const checks = [
+    ...config.http_checks.map((spec) => ({ id: spec.id, title: spec.title, kind: "live-api", result: "PASS", observation: "Matched", evidence_url: new URL(spec.path, config.site).href, response_sha256: "a".repeat(64) })),
+    ...config.browser_checks.map((spec) => ({ id: spec.id, title: spec.title, kind: "browser-runner", result: "PASS", observation: "Visible", evidence_url: config.site }))
+  ];
+  const claims = summarizeClaims(config, checks);
+  const report = { protocol: "ROADTEST_REPORT_V1", report_id: `${config.id}-20261008t123456z`, plan: config,
+    project: { id: config.id, name: config.name, site: config.site }, scope: config.scope,
+    checks, claims, overall: overallStatus(claims), not_tested: config.not_tested,
+    screenshot: null, screenshot_sha256: null };
+  assert.equal(assertReportMatchesPlan(report, config), report);
+  assert.throws(() => assertReportMatchesPlan({ ...report, overall: "FAIL" }, config), /does not match/);
+  assert.throws(() => assertReportMatchesPlan({ ...report, report_id: "../wrong" }, config), /does not match/);
+  assert.throws(() => assertReportMatchesPlan({ ...report, checks: checks.map((check, index) => index ? check : { ...check, id: "different" }) }, config), /does not match/);
 });

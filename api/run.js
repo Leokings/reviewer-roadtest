@@ -2,8 +2,9 @@ import { readFile } from "node:fs/promises";
 import { randomBytes } from "node:crypto";
 import { Sandbox } from "@vercel/sandbox";
 import { put } from "@vercel/blob";
-import { sha256, validateConfig } from "../lib/checks.mjs";
+import { assertReportMatchesPlan, sha256, validateConfig } from "../lib/checks.mjs";
 import { assertPublicTarget, sandboxPolicy } from "../lib/public-target.mjs";
+import { readJsonBody, RequestTooLargeError } from "../lib/request.mjs";
 
 const runnerSource = new URL("../scripts/sandbox-runner.mjs", import.meta.url);
 const checksSource = new URL("../lib/checks.mjs", import.meta.url);
@@ -11,15 +12,14 @@ const checksSource = new URL("../lib/checks.mjs", import.meta.url);
 export async function POST(request) {
   let config;
   try {
-    if (Number(request.headers.get("content-length")) > 20000) return Response.json({ error: "Plan is too large" }, { status: 413 });
-    config = validateConfig(await request.json());
+    config = validateConfig(await readJsonBody(request, 20000));
     if (JSON.stringify(config).length > 20000 || config.browser_checks.length > 5 || config.http_checks.length > 5) {
       throw new Error("Hosted runs allow at most 5 browser checks and 5 public reads");
     }
     if (request.headers.get("origin") && new URL(request.headers.get("origin")).host !== request.headers.get("host")) {
       throw new Error("Open the Roadtest site to start a hosted run");
     }
-  } catch (error) { return Response.json({ error: error.message }, { status: 400 }); }
+  } catch (error) { return Response.json({ error: error.message }, { status: error instanceof RequestTooLargeError ? 413 : 400 }); }
 
   if (!process.env.ROADTEST_SANDBOX_SNAPSHOT_ID || !process.env.BLOB_READ_WRITE_TOKEN) {
     return Response.json({ error: "Hosted runs are not configured yet" }, { status: 503 });
@@ -41,8 +41,8 @@ export async function POST(request) {
     const command = await sandbox.runCommand({ cmd: "node", args: ["/vercel/runner.mjs"], cwd: "/vercel" });
     if (command.exitCode !== 0) throw new Error((await command.stderr()).slice(-500));
     const reportBytes = await sandbox.readFileToBuffer({ path: "result.json" });
-    if (!reportBytes || reportBytes.length > 200000) throw new Error("Sandbox did not produce a valid report");
-    const report = JSON.parse(reportBytes.toString("utf8"));
+    if (!reportBytes || reportBytes.length > 100000) throw new Error("Sandbox did not produce a reviewable report");
+    const report = assertReportMatchesPlan(JSON.parse(reportBytes.toString("utf8")), config);
     const imageBytes = await sandbox.readFileToBuffer({ path: "evidence.jpg" });
     const nonce = randomBytes(8).toString("hex");
     if (imageBytes && imageBytes.length <= 750000 && sha256(imageBytes) === report.screenshot_sha256) {
