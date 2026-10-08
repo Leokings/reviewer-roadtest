@@ -4,3 +4,8 @@ node_modules/
 playwright-report/
 test-results/
 *.log
+.vercel
+.pytest_cache/
+.gltest_cache/
+artifacts/
+.venv/

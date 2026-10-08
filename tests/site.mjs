@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { mkdir, readFile } from "node:fs/promises";
 import { chromium } from "playwright";
 
-const base = process.env.ROADTEST_BASE_URL ?? "http://localhost:4173";
+const base = process.argv[2] ?? process.env.ROADTEST_BASE_URL ?? "http://localhost:4173";
 const report = JSON.parse(await readFile(new URL("../public/reports/deliveryos.json", import.meta.url), "utf8"));
 const browser = await chromium.launch({ headless: true });
 try {
