@@ -37,6 +37,8 @@ The [OnboardingRoadtest intelligent contract](contracts/OnboardingRoadtest.py) a
 
 Studionet contract: `0x565096782FE263BEFaDC65a0A5796dd2544116bB`. With your own authorized Studionet wallet, call `assess(unique_id, https://public-site.example/)`, wait for `FINALIZED`, inspect successful execution, and then read `get_assessment(unique_id)`. Never put a private key in the site, repository, or chat. The contract uses a pinned GenVM runner; lint, direct tests, and a real Studionet consensus run are part of this repository's evidence.
 
+The site's own clarity assessment returned `CLEAR` in this [finalized Studionet transaction](https://explorer-studio.genlayer.com/tx/0x845a158ae90faff007f8b62dad1d4827bf4614062e33363a361ad93ab4a51d52). It is also published as [assessment JSON](https://reviewer-roadtest.vercel.app/assessments/roadtest.json).
+
 ## What remains outside this release
 
 - A hosted queue that executes arbitrary third-party URLs, with authentication, abuse controls, and safe browser isolation.

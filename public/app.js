@@ -151,7 +151,7 @@ $("#plan-form").addEventListener("submit", (event) => {
         !/^[a-z0-9.-]+$/.test(host) || !host.includes(".") || host.includes("..") ||
         host.endsWith(".") || host.endsWith(".local") || host.endsWith(".internal") || host.endsWith(".test") || host.endsWith(".localhost") ||
         /^\d+(?:\.\d+){3}$/.test(host)) throw new Error("Use a public HTTPS homepage URL.");
-    let id = values.name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48);
+    let id = values.name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48).replace(/-$/, "");
     if (id.length < 2) id = "my-project";
     const config = {
       id, name: values.name.trim(), site: url.href,

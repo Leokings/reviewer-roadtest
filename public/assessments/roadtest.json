@@ -1,0 +1,18 @@
+{
+  "protocol": "ROADTEST_ONBOARDING_V1",
+  "network": "studionet",
+  "chain_id": 61999,
+  "contract_address": "0x565096782FE263BEFaDC65a0A5796dd2544116bB",
+  "assessment_id": "roadtest_self_clarity_v2",
+  "landing_url": "https://reviewer-roadtest.vercel.app/",
+  "verdict": "CLEAR",
+  "scope": "GenLayer validators independently fetched this public landing-page text and agreed on first-visit explanation clarity. This does not verify CI browser actions, all runner behavior, or security.",
+  "assessed_epoch": 1791491670,
+  "transaction_hash": "0x845a158ae90faff007f8b62dad1d4827bf4614062e33363a361ad93ab4a51d52",
+  "transaction_status": "FINALIZED",
+  "consensus_result": "MAJORITY_AGREE",
+  "execution_result": "SUCCESS",
+  "source_sha256": "85f9da2e0bccad0e87cbb73227079eb6936959af8fc00507871817cf34c0517f",
+  "explorer_url": "https://explorer-studio.genlayer.com/tx/0x845a158ae90faff007f8b62dad1d4827bf4614062e33363a361ad93ab4a51d52",
+  "source_url": "https://github.com/Leokings/reviewer-roadtest/blob/986e3ae11c9088c60b64bcea4a95fd7516bb77d8/contracts/OnboardingRoadtest.py"
+}

@@ -16,6 +16,8 @@ try {
   await page.getByRole("heading", { name: "This site, first hand.", exact: true }).waitFor();
   assert.match(await page.locator("#agents").innerText(), /wallet signs that on-chain write/);
   await page.locator("#report-content").waitFor({ state: "visible", timeout: 30000 });
+  await page.locator("#consensus-card").waitFor({ state: "visible", timeout: 30000 });
+  assert.equal(await page.locator("#consensus-verdict").innerText(), "CLEAR");
   assert.equal(await page.locator("#report-project").innerText(), "Reviewer Roadtest");
   assert.equal(await page.locator("#report-overall").innerText(), report.overall);
   assert.equal(await page.locator("#screenshot-link").isVisible(), Boolean(report.screenshot));
@@ -42,6 +44,11 @@ try {
   await page.getByLabel("Public site URL").fill("http://localhost/");
   await page.getByRole("button", { name: /Download my plan JSON/ }).click();
   assert.match(await page.locator("#plan-status").innerText(), /public HTTPS/);
+  await page.getByLabel("Public site URL").fill("https://example.org/");
+  await page.getByLabel("Project name").fill("A".repeat(47) + " more words");
+  const longNameDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: /Download my plan JSON/ }).click();
+  assert.equal(validateConfig(JSON.parse(await readFile(await (await longNameDownload).path(), "utf8"))).id.length, 47);
   await page.screenshot({ path: "test-results/roadtest-desktop.png", fullPage: true, animations: "disabled" });
   assert.deepEqual(errors, []);
 

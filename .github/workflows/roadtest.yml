@@ -69,7 +69,7 @@ jobs:
       - name: Wait for the independent site release
         run: |
           for i in $(seq 1 60); do
-            if node -e 'const a=await fetch("https://reviewer-roadtest.vercel.app/openapi.json",{cache:"no-store"}).then(r=>r.json());const b=await fetch("https://reviewer-roadtest.vercel.app/roadtest.template.json",{cache:"no-store"}).then(r=>r.json());if(a.info.version!=="0.2.1"||b.id!=="my-project")process.exit(1)' ; then
+            if node -e 'const a=await fetch("https://reviewer-roadtest.vercel.app/openapi.json",{cache:"no-store"}).then(r=>r.json());const b=await fetch("https://reviewer-roadtest.vercel.app/roadtest.template.json",{cache:"no-store"}).then(r=>r.json());if(a.info.version!=="0.2.2"||b.id!=="my-project")process.exit(1)' ; then
               exit 0
             fi
             sleep 5

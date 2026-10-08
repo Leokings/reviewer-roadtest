@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Reviewer Roadtest API",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "description": "Read-only public reports and a separate GenLayer assessment. No API key is needed. The website does not execute arbitrary targets; use the open-source runner for that."
   },
   "servers": [{ "url": "https://reviewer-roadtest.vercel.app" }],
