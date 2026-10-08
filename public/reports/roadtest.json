@@ -1,0 +1,101 @@
+{
+  "protocol": "ROADTEST_REPORT_V1",
+  "report_id": "roadtest-20261008t202701402z",
+  "created_at": "2026-10-08T20:27:01.402Z",
+  "completed_at": "2026-10-08T20:27:03.128Z",
+  "project": {
+    "id": "roadtest",
+    "name": "Reviewer Roadtest",
+    "site": "https://reviewer-roadtest.vercel.app/",
+    "source": "https://github.com/Leokings/reviewer-roadtest"
+  },
+  "scope": "A fresh browser can find this site's headline and public example. Three public machine-readable resources remain available. This is a self-check, not a security audit or proof that other targets pass.",
+  "evidence_model": {
+    "http": "The runner fetched same-origin public responses and recorded byte hashes. The target operates these endpoints; their contents are not independent proof.",
+    "browser": "The screenshot and clicks, when present, are CI-runner observations, not trustless proof of human use.",
+    "onchain": "Any displayed GenLayer assessment is separate from this deterministic CI report and covers only its named question."
+  },
+  "checks": [
+    {
+      "id": "openapi",
+      "title": "The public API description is reachable",
+      "kind": "live-api",
+      "result": "PASS",
+      "observation": "openapi=\"3.1.0\"; expected=\"3.1.0\" | info.title=\"Reviewer Roadtest API\"; expected=\"Reviewer Roadtest API\"",
+      "evidence_url": "https://reviewer-roadtest.vercel.app/openapi.json",
+      "response_sha256": "8972c6387fb4f0a757aa33d0bddaad696a48437c1e01aa546dbdfeb9beb53081"
+    },
+    {
+      "id": "agent-guide",
+      "title": "The agent guide is public",
+      "kind": "live-api",
+      "result": "PASS",
+      "observation": "Contains \"Reviewer Roadtest\": true | Contains \"no API key\": true",
+      "evidence_url": "https://reviewer-roadtest.vercel.app/llms.txt",
+      "response_sha256": "108eb5e10fe227bef585cd6708823c55456cc67703489e5735e33bf517cd40b0"
+    },
+    {
+      "id": "starter-config",
+      "title": "A reusable starter configuration is available",
+      "kind": "live-api",
+      "result": "PASS",
+      "observation": "id=\"my-project\"; expected=\"my-project\"",
+      "evidence_url": "https://reviewer-roadtest.vercel.app/roadtest.template.json",
+      "response_sha256": "b21923ceb9006efa9f2e0b4355c3fbfc729ab847afce2ff9f8ac7d470585380d"
+    },
+    {
+      "id": "first-visit-heading",
+      "title": "The first-visit purpose is visible",
+      "kind": "browser-runner",
+      "result": "PASS",
+      "observation": "Visible heading \"A better way to say “it works.”\" in a clean browser.",
+      "evidence_url": "https://reviewer-roadtest.vercel.app/"
+    },
+    {
+      "id": "sample-path",
+      "title": "A visitor can open the sample without signing in",
+      "kind": "browser-runner",
+      "result": "PASS",
+      "observation": "Clicked link \"See a sample roadtest\" and found heading \"This site, first hand.\".",
+      "evidence_url": "https://reviewer-roadtest.vercel.app/#report"
+    },
+    {
+      "id": "browser-javascript",
+      "title": "No uncaught page error on the tested path",
+      "kind": "browser-runner",
+      "result": "PASS",
+      "observation": "No uncaught page errors in the tested path.",
+      "evidence_url": "https://reviewer-roadtest.vercel.app/#report"
+    }
+  ],
+  "claims": [
+    {
+      "id": "fresh-visitor",
+      "text": "A first-time visitor can see the main headline and reach the public example without a wallet.",
+      "check_ids": [
+        "first-visit-heading",
+        "sample-path",
+        "browser-javascript"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "agent-resources",
+      "text": "An agent can read the public API description, guidance, and a starter configuration without a key.",
+      "check_ids": [
+        "openapi",
+        "agent-guide",
+        "starter-config"
+      ],
+      "status": "PASS"
+    }
+  ],
+  "overall": "PASS",
+  "screenshot": "evidence/roadtest-first-visit.png",
+  "not_tested": [
+    "Other projects or arbitrary user-submitted URLs",
+    "Signed wallet transactions or financial flows",
+    "Every browser, wallet, accessibility setting, or device",
+    "Security properties beyond these named checks"
+  ]
+}
