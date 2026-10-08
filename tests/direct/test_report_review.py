@@ -17,7 +17,7 @@ def test_invalid_review_inputs_revert_before_web_fetch(direct_vm, direct_deploy,
     direct_vm.sender = direct_alice
     with direct_vm.expect_revert("Review id must"):
         contract.review("x", f"https://{HOST}/reports/a.json", "a" * 64)
-    with direct_vm.expect_revert("published Roadtest"):
+    with direct_vm.expect_revert("Use a public HTTPS URL"):
         contract.review("valid_id", "https://localhost/reports/a.json", "a" * 64)
     with direct_vm.expect_revert("published Roadtest"):
         contract.review("valid_id", f"https://{HOST}/reports/a.json", "wrong")
