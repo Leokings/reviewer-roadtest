@@ -1,0 +1,18 @@
+{
+  "protocol": "ROADTEST_ONBOARDING_V1",
+  "network": "studionet",
+  "chain_id": 61999,
+  "contract_address": "0x565096782FE263BEFaDC65a0A5796dd2544116bB",
+  "assessment_id": "deliveryos_v4_first_visit",
+  "landing_url": "https://deliveryos-tau-wheat.vercel.app/",
+  "verdict": "CLEAR",
+  "scope": "GenLayer validators independently fetched the public server-rendered landing-page text and agreed on first-visit explanation clarity. This does not verify CI browser clicks, contract security, or all DeliveryOS flows.",
+  "assessed_epoch": 1791488737,
+  "transaction_hash": "0x38d03824869fffcfdf1ede69e6189ed77939e215fd632acac8c7cb73647d3acc",
+  "transaction_status": "FINALIZED",
+  "consensus_result": "MAJORITY_AGREE",
+  "execution_result": "SUCCESS",
+  "source_sha256": "85f9da2e0bccad0e87cbb73227079eb6936959af8fc00507871817cf34c0517f",
+  "explorer_url": "https://explorer-studio.genlayer.com/tx/0x38d03824869fffcfdf1ede69e6189ed77939e215fd632acac8c7cb73647d3acc",
+  "source_url": "https://github.com/Leokings/reviewer-roadtest/blob/main/contracts/OnboardingRoadtest.py"
+}

@@ -20,6 +20,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: roadtest-main
+  cancel-in-progress: false
+
 jobs:
   contract:
     if: github.event_name != 'schedule'
@@ -34,6 +38,18 @@ jobs:
           cache-dependency-path: requirements-test.txt
       - run: python -m pip install -r requirements-test.txt
       - run: genvm-lint check contracts/OnboardingRoadtest.py --json
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/gltest-direct
+          key: genvm-runners-v0.3.0-rc7
+      - name: Provide renamed GenVM runner archive to direct mode
+        run: |
+          mkdir -p "$HOME/.cache/gltest-direct"
+          if [ ! -f "$HOME/.cache/gltest-direct/genvm-universal-v0.3.0-rc7.tar.xz" ]; then
+            curl -fL --retry 3 --retry-delay 3 \
+              https://github.com/genlayerlabs/genvm/releases/download/v0.3.0-rc7/genvm-runners-all.tar.xz \
+              -o "$HOME/.cache/gltest-direct/genvm-universal-v0.3.0-rc7.tar.xz"
+          fi
       - run: python -m pytest tests/direct -q
   roadtest:
     runs-on: ubuntu-latest

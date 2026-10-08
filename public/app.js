@@ -87,6 +87,24 @@ function renderReport(report) {
   $("#report-content").hidden = false;
 }
 
+function renderAssessment(assessment) {
+  if (assessment.protocol !== "ROADTEST_ONBOARDING_V1" || !["CLEAR", "PARTIAL", "UNCLEAR"].includes(assessment.verdict) ||
+      !/^0x[0-9a-fA-F]{40}$/.test(assessment.contract_address) || !/^0x[0-9a-fA-F]{64}$/.test(assessment.transaction_hash)) {
+    throw new Error("Unsupported on-chain assessment record.");
+  }
+  const txUrl = safeEvidenceUrl(assessment.explorer_url);
+  const sourceUrl = safeEvidenceUrl(assessment.source_url);
+  if (!txUrl || !sourceUrl) throw new Error("Assessment links must be HTTPS.");
+  text($("#consensus-verdict"), assessment.verdict);
+  text($("#consensus-scope"), assessment.scope);
+  text($("#consensus-contract"), "Contract " + short(assessment.contract_address, 12, 8));
+  text($("#consensus-date"), "Assessed " + new Date(assessment.assessed_epoch * 1000).toLocaleDateString(undefined, { dateStyle: "medium" }));
+  $("#consensus-tx").href = txUrl;
+  $("#consensus-source").href = sourceUrl;
+  $("#consensus-card").dataset.status = assessment.verdict;
+  $("#consensus-card").hidden = false;
+}
+
 async function readJson(url) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 25000);
@@ -155,6 +173,11 @@ $("#copy-report").addEventListener("click", async () => {
 
 try {
   renderReport(await readJson(REPORT_URL));
+  try {
+    renderAssessment(await readJson("/assessments/deliveryos.json"));
+  } catch (error) {
+    console.warn("GenLayer assessment is unavailable:", error.message);
+  }
 } catch (error) {
   text($("#loading"), "The published report could not be loaded: " + error.message);
 }

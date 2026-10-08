@@ -7,6 +7,17 @@
   },
   "servers": [{ "url": "https://reviewer-roadtest.vercel.app" }],
   "paths": {
+    "/assessments/deliveryos.json": {
+      "get": {
+        "summary": "Get the separate GenLayer first-visit assessment and its finalized transaction",
+        "responses": {
+          "200": {
+            "description": "Public assessment record; verify on Studionet via contract address and transaction hash",
+            "content": { "application/json": { "schema": { "type": "object", "required": ["protocol", "contract_address", "assessment_id", "verdict", "transaction_hash", "scope"] } } }
+          }
+        }
+      }
+    },
     "/reports/deliveryos.json": {
       "get": {
         "summary": "Get the latest published DeliveryOS roadtest",

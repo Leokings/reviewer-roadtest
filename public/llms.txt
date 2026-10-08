@@ -2,7 +2,10 @@
 
 Reviewer Roadtest publishes narrowly scoped, repeatable first-time-user and public-evidence reports.
 Read the current report: /reports/deliveryos.json
+Read the separate GenLayer onboarding assessment: /assessments/deliveryos.json
 Read the API schema: /openapi.json
 Source and CI runner: https://github.com/Leokings/reviewer-roadtest
 
 The public JSON needs no API key. Interpret overall PASS only for the explicit claims and check_ids in that report. Read not_tested and evidence_model before relying on it. A browser screenshot is runner evidence, not independently verified on-chain proof. The current DeliveryOS run is read-only and checks prior Studionet transactions; it does not perform a new signed transaction.
+
+The GenLayer assessment is a separate subjective judgement of first-visit explanatory clarity from server-rendered public landing-page text. It does not validate the CI runner's browser clicks or the API receipts. To reproduce a new assessment, use your own authorized GenLayer wallet to call assess(id, https://public-site.example/) on the deployed contract; then check finalized execution success and read get_assessment(id).

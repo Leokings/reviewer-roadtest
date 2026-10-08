@@ -9,3 +9,5 @@ test-results/
 .gltest_cache/
 artifacts/
 .venv/
+__pycache__/
+*.pyc

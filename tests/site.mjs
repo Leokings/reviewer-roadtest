@@ -12,6 +12,9 @@ try {
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(base, { waitUntil: "networkidle", timeout: 45000 });
   await page.getByRole("heading", { name: "DeliveryOS", exact: true }).waitFor();
+  await page.locator("#consensus-card").waitFor();
+  assert.equal(await page.locator("#consensus-verdict").innerText(), "CLEAR");
+  assert.match(await page.locator("#consensus-tx").getAttribute("href"), /^https:\/\/explorer-studio\.genlayer\.com\/tx\/0x[0-9a-f]{64}$/);
   assert.equal(await page.locator("#report-overall").innerText(), report.overall);
   assert.match(await page.locator("#claim-count").innerText(), /4 SCOPED CLAIMS/);
   assert.equal(await page.locator(".check").count(), report.checks.length);
@@ -27,6 +30,7 @@ try {
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   await mobile.goto(base, { waitUntil: "networkidle", timeout: 45000 });
   await mobile.getByRole("heading", { name: "DeliveryOS", exact: true }).waitFor();
+  await mobile.locator("#consensus-card").waitFor();
   const overflow = await mobile.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert.ok(overflow <= 1, "Mobile page must not overflow horizontally; overflow=" + overflow);
   await mobile.screenshot({ path: "test-results/roadtest-mobile.png", fullPage: true, animations: "disabled" });
