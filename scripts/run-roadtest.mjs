@@ -13,6 +13,7 @@ function browserCheck(id, title, result, observation, evidenceUrl = config.site)
 
 async function runBrowserChecks() {
   const checks = [];
+  let screenshotProduced = false;
   let browser;
   try {
     browser = await chromium.launch({ headless: true });
@@ -40,6 +41,7 @@ async function runBrowserChecks() {
       const screenshotPath = join(projectRoot, "public", screenshotRelative);
       await mkdir(join(projectRoot, "public/evidence"), { recursive: true });
       await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled" });
+      screenshotProduced = true;
       checks.push(browserCheck("example-browser", "Example opens in a fresh browser", accepted ? "PASS" : "FAIL",
         `Job heading=${config.example_job_id}; accepted label=${detail.includes("ACCEPTED")}; decision source=${detail.includes("CONSENSUS")}. Screenshot is runner evidence, not cryptographic proof.`, page.url()));
     } else {
@@ -56,17 +58,17 @@ async function runBrowserChecks() {
   } finally {
     await browser?.close();
   }
-  return checks;
+  return { checks, screenshotProduced };
 }
 
 const started = new Date().toISOString();
 const apiChecks = await runApiChecks(config);
-const browserChecks = await runBrowserChecks();
+const { checks: browserChecks, screenshotProduced } = await runBrowserChecks();
 const checks = [...apiChecks, ...browserChecks];
 const claims = summarizeClaims(config, checks);
 const report = {
   protocol: REPORT_PROTOCOL,
-  report_id: `${config.id}-${started.slice(0, 10)}`,
+  report_id: `${config.id}-${started.replace(/[-:.]/g, "").replace("T", "t").replace("Z", "z")}`,
   created_at: started,
   completed_at: new Date().toISOString(),
   project: { id: config.id, name: config.name, site: config.site, source: config.source, source_commit: config.source_commit,
@@ -75,13 +77,13 @@ const report = {
   evidence_model: {
     live_api: "The runner fetched public API responses and recorded byte hashes. The API is operated by DeliveryOS; this alone is not independent chain verification.",
     transaction: "Transaction status and execution are reported by the DeliveryOS API, which reads GenLayer Studionet.",
-    browser: "The screenshot and clicks are CI-runner observations, not trustless on-chain proof.",
+    browser: "When present, the screenshot and clicks are CI-runner observations, not trustless on-chain proof.",
     source: "The source commit is a disclosed reference, not an assertion that production deployed those exact bytes."
   },
   checks,
   claims,
   overall: overallStatus(claims),
-  screenshot: `evidence/${config.id}-first-visit.png`,
+  screenshot: screenshotProduced ? `evidence/${config.id}-first-visit.png` : null,
   not_tested: ["A new signed wallet transaction", "Provider acceptance and submission from a fresh wallet", "GenLayer validator review on a newly created job", "Other wallets, browsers, and mobile devices", "Security properties beyond the scoped assertions"]
 };
 const reportPath = join(projectRoot, "public/reports", `${config.id}.json`);

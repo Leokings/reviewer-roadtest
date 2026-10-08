@@ -64,11 +64,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm test
       - name: Test DeliveryOS and write the report
         id: live
         continue-on-error: true
         run: npm run roadtest
+      - run: npm test
       - name: Check the report website
         run: |
           npx serve public -l 4173 > /tmp/roadtest-serve.log 2>&1 &

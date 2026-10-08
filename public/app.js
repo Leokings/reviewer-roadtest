@@ -78,6 +78,9 @@ function renderReport(report) {
   text($("#report-contract"), "Contract " + short(report.project.contract));
   text($("#report-overall"), report.overall);
   $(".report-verdict").dataset.status = report.overall;
+  const screenshot = $("#screenshot-link");
+  screenshot.hidden = typeof report.screenshot !== "string" || !/^evidence\/[a-z0-9-]+\.png$/.test(report.screenshot);
+  if (!screenshot.hidden) screenshot.href = "/" + report.screenshot;
   text($("#agent-code"), JSON.stringify({ overall: report.overall, claims: report.claims.slice(0, 1).map((claim) => ({ id: claim.id, status: claim.status, check_ids: claim.check_ids })), not_tested: ["See full report"] }, null, 2));
   renderClaims(report);
   renderChecks(report);

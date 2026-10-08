@@ -41,6 +41,12 @@ test("missing check never becomes a pass", () => {
   assert.equal(overallStatus(claims), "INCONCLUSIVE");
 });
 
+test("a definite failed check is not hidden by another missing check", () => {
+  const claims = summarizeClaims(config, [{ id: "example-job", result: "FAIL" }]);
+  assert.equal(claims.find((claim) => claim.id === "reviewed-example")?.status, "FAIL");
+  assert.equal(overallStatus(claims), "FAIL");
+});
+
 test("HTTP failures stay inconclusive instead of becoming false proof", async () => {
   const response = await fetchJson("https://example.com/a", async () => ({ ok: true, arrayBuffer: async () => Buffer.from('{"ok":true}') }));
   assert.equal(response.value.ok, true);

@@ -26,11 +26,11 @@
     {
       "id": "first-visit",
       "text": "A new visitor can inspect that example without connecting a wallet.",
-      "checks": ["first-visit-browser", "example-browser"]
+      "checks": ["first-visit-browser", "example-browser", "browser-javascript"]
     },
     {
       "id": "prior-browser-write",
-      "text": "A prior browser-originated create-job transaction finalized successfully and remains readable.",
+      "text": "A prior create-job transaction finalized successfully and its job remains readable.",
       "checks": ["browser-write-transaction", "browser-write-state"]
     }
   ]

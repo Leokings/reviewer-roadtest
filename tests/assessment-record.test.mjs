@@ -15,6 +15,7 @@ test("on-chain assessment record names exact source bytes and receipt", () => {
   assert.equal(assessment.contract_address.length, 42);
   assert.match(assessment.transaction_hash, /^0x[0-9a-f]{64}$/);
   assert.ok(assessment.explorer_url.endsWith(assessment.transaction_hash));
+  assert.match(assessment.source_url, /\/blob\/[0-9a-f]{40}\/contracts\/OnboardingRoadtest\.py$/);
   assert.equal(assessment.landing_url, config.site);
   assert.equal(assessment.transaction_status, "FINALIZED");
   assert.equal(assessment.execution_result, "SUCCESS");
@@ -23,6 +24,8 @@ test("on-chain assessment record names exact source bytes and receipt", () => {
 
 test("published report status follows its checks and scoped claims", () => {
   const derivedClaims = summarizeClaims(config, report.checks);
+  const claimedCheckIds = new Set(config.claims.flatMap((claim) => claim.checks));
+  assert.ok(report.checks.every((check) => claimedCheckIds.has(check.id)), "Every published check must affect a scoped claim");
   assert.deepEqual(
     report.claims.map((claim) => [claim.id, claim.status]),
     derivedClaims.map((claim) => [claim.id, claim.status])

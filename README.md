@@ -38,7 +38,7 @@ GitHub Actions runs the unit tests, browser/HTTP Roadtest, and report viewer che
 
 ## Evidence boundaries
 
-- The read-only v1 run does **not** sign a new transaction. It checks a previously recorded browser-originated transaction and a consensus-reviewed example.
+- The read-only v1 run does **not** sign a new transaction. It checks a previously recorded create-job transaction and a consensus-reviewed example. DeliveryOS describes that earlier transaction as browser-originated, but the receipt alone cannot prove where it was signed.
 - DeliveryOS operates the public API. Roadtest records exact response SHA-256 values but the API responses are not independent chain proof.
 - The screenshot records what an automated browser observed. It is not a trustless proof of clicks.
 - The GenLayer contract judges server-rendered landing-page text, not a full interactive browser session. Its CLEAR verdict is about the explanation, not software correctness.

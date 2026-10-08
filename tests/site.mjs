@@ -16,6 +16,7 @@ try {
   assert.equal(await page.locator("#consensus-verdict").innerText(), "CLEAR");
   assert.match(await page.locator("#consensus-tx").getAttribute("href"), /^https:\/\/explorer-studio\.genlayer\.com\/tx\/0x[0-9a-f]{64}$/);
   assert.equal(await page.locator("#report-overall").innerText(), report.overall);
+  assert.equal(await page.locator("#screenshot-link").isVisible(), Boolean(report.screenshot));
   assert.match(await page.locator("#claim-count").innerText(), /4 SCOPED CLAIMS/);
   assert.equal(await page.locator(".check").count(), report.checks.length);
   await page.getByRole("button", { name: "Browser", exact: true }).click();
@@ -26,6 +27,13 @@ try {
   await page.locator("#recheck-result").getByText(/live reads match|inconclusive/i).waitFor({ timeout: 60000 });
   await page.screenshot({ path: "test-results/roadtest-desktop.png", fullPage: true, animations: "disabled" });
   assert.deepEqual(errors, []);
+
+  const missingScreenshot = await browser.newPage();
+  await missingScreenshot.route("**/reports/deliveryos.json", (route) => route.fulfill({ json: { ...report, screenshot: null } }));
+  await missingScreenshot.goto(base, { waitUntil: "networkidle", timeout: 45000 });
+  await missingScreenshot.getByRole("heading", { name: "DeliveryOS", exact: true }).waitFor();
+  assert.equal(await missingScreenshot.locator("#screenshot-link").isVisible(), false);
+  await missingScreenshot.close();
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   await mobile.goto(base, { waitUntil: "networkidle", timeout: 45000 });
