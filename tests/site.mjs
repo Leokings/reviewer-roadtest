@@ -14,6 +14,7 @@ try {
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(base, { waitUntil: "networkidle", timeout: 45000 });
   await page.getByRole("heading", { name: "This site, first hand.", exact: true }).waitFor();
+  assert.match(await page.locator("#agents").innerText(), /wallet signs that on-chain write/);
   await page.locator("#report-content").waitFor({ state: "visible", timeout: 30000 });
   assert.equal(await page.locator("#report-project").innerText(), "Reviewer Roadtest");
   assert.equal(await page.locator("#report-overall").innerText(), report.overall);

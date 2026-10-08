@@ -7,6 +7,7 @@
   "browser_checks": [
     { "id": "first-visit-heading", "title": "The first-visit purpose is visible", "type": "visible", "role": "heading", "name": "A better way to say “it works.”" },
     { "id": "sample-path", "title": "A visitor can open the sample without signing in", "type": "click", "role": "link", "name": "See a sample roadtest", "after": { "role": "heading", "name": "This site, first hand." } },
+    { "id": "report-loaded", "title": "The public sample report finishes loading", "type": "visible", "role": "heading", "name": "Reviewer Roadtest" },
     { "id": "browser-javascript", "title": "No uncaught page error on the tested path", "type": "no-page-errors" }
   ],
   "http_checks": [
@@ -15,7 +16,7 @@
     { "id": "starter-config", "title": "A reusable starter configuration is available", "path": "/roadtest.template.json", "format": "json", "assertions": [{ "field": "id", "equals": "my-project" }] }
   ],
   "claims": [
-    { "id": "fresh-visitor", "text": "A first-time visitor can see the main headline and reach the public example without a wallet.", "checks": ["first-visit-heading", "sample-path", "browser-javascript"] },
+    { "id": "fresh-visitor", "text": "A first-time visitor can see the main headline and load the public example without a wallet.", "checks": ["first-visit-heading", "sample-path", "report-loaded", "browser-javascript"] },
     { "id": "agent-resources", "text": "An agent can read the public API description, guidance, and a starter configuration without a key.", "checks": ["openapi", "agent-guide", "starter-config"] }
   ],
   "not_tested": [
